@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { CalendarDays, CheckCircle2, Lock, ShieldCheck, Trophy } from "lucide-react"
 import { toast } from "sonner"
@@ -434,6 +435,18 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
                   </div>
                 )}
               </div>
+
+              <p className="text-xs leading-6 text-slate-500">
+                {t.submit.acceptance.prefix}
+                <Link href="/rules" className="font-bold text-emerald-700 underline underline-offset-2">
+                  {t.submit.acceptance.rules}
+                </Link>
+                {t.submit.acceptance.between}
+                <Link href="/privacy" className="font-bold text-emerald-700 underline underline-offset-2">
+                  {t.submit.acceptance.privacy}
+                </Link>
+                {t.submit.acceptance.suffix}
+              </p>
 
               <Button
                 type="submit"

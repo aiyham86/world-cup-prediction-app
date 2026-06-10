@@ -73,6 +73,14 @@ export const translations = {
       selectMatchFirst: "Select a match first to enter your score prediction.",
       penaltyWinnerTitle: "Who advances after penalties?",
       penaltyWinnerRequired: "Please choose who advances after penalties.",
+      acceptance: {
+        prefix:
+          "By submitting your prediction, you confirm that you are a Simex Group employee, your name is correct, and you accept the ",
+        rules: "Rules",
+        between: " and ",
+        privacy: "Privacy & Fair Play",
+        suffix: " notice.",
+      },
       heroCards: [
         {
           title: "One prediction per match",
@@ -83,8 +91,8 @@ export const translations = {
           desc: "Predictions must be submitted before the match starts.",
         },
         {
-          title: "Internal game",
-          desc: "For Simex employees, for fun only.",
+          title: "Free internal game",
+          desc: "For Simex Group employees only. No payment or betting.",
         },
       ],
       howItWorksTitle: "How it works",
@@ -95,7 +103,8 @@ export const translations = {
         "Duplicate submissions for the same match are blocked.",
       ],
       importantTitle: "Important",
-      importantText: "Each employee may submit only one prediction per match. This is only a friendly internal game.",
+      importantText:
+        "Please read the Rules and Privacy & Fair Play notice before submitting. Each prediction can only be submitted once and cannot be changed.",
     },
     departments: {
       Office: "Office",
@@ -386,6 +395,14 @@ export const translations = {
       selectMatchFirst: "Wähle zuerst ein Spiel aus, um deinen Tipp einzugeben.",
       penaltyWinnerTitle: "Wer kommt nach dem Elfmeterschießen weiter?",
       penaltyWinnerRequired: "Bitte wähle aus, wer im Elfmeterschießen weiterkommt.",
+      acceptance: {
+        prefix:
+          "Mit dem Absenden deines Tipps bestätigst du, dass du Mitarbeiter/in der Simex Group bist, dein Name korrekt ist und du die ",
+        rules: "Regeln",
+        between: " sowie den Hinweis ",
+        privacy: "Datenschutz & Fair Play",
+        suffix: " akzeptierst.",
+      },
       heroCards: [
         {
           title: "Ein Tipp pro Spiel",
@@ -396,8 +413,8 @@ export const translations = {
           desc: "Tipps müssen vor Spielbeginn abgegeben werden.",
         },
         {
-          title: "Internes Spiel",
-          desc: "Für Simex Mitarbeitende, nur zum Spass.",
+          title: "Kostenloses internes Spiel",
+          desc: "Nur für Mitarbeitende der Simex Group. Keine Zahlung und keine Wette.",
         },
       ],
       howItWorksTitle: "So funktioniert es",
@@ -408,7 +425,8 @@ export const translations = {
         "Doppelte Tipps für dasselbe Spiel werden blockiert.",
       ],
       importantTitle: "Wichtig",
-      importantText: "Jede Person kann pro Spiel nur einen Tipp abgeben. Das ist ein freundliches internes Spiel.",
+      importantText:
+        "Bitte lies die Regeln und den Hinweis Datenschutz & Fair Play vor dem Absenden. Jeder Tipp kann nur einmal abgegeben werden und kann nicht geändert werden.",
     },
     departments: {
       Office: "Büro",
