@@ -317,7 +317,7 @@ export const translations = {
           title: "Fair play",
           items: [
             "Simex reserves the right to exclude participants in cases of misuse, duplicate entries, false names, non-employee participation, technical manipulation, or behavior that violates the spirit of fair play. In unclear cases, Simex may make a final decision.",
-            "For questions, please contact the internal game admin or HR.",
+            "For questions, please contact:\n\nGame admin:\nAiyham Alkatranji\n[a.alkatranji@simex-trading.ch](mailto:a.alkatranji@simex-trading.ch)\n\nHR:\nHelle Ituri Rasmussen\n[h.rasmussen@simex-trading.ch](mailto:h.rasmussen@simex-trading.ch)",
           ],
         },
       ],
@@ -639,7 +639,7 @@ export const translations = {
           title: "Fair Play",
           items: [
             "Simex behält sich das Recht vor, Teilnehmende bei Missbrauch, mehrfacher Teilnahme, falschen Namen, Teilnahme durch nicht berechtigte Personen, technischer Manipulation oder Verhalten gegen den Fair-Play-Gedanken auszuschließen. In unklaren Fällen kann Simex eine endgültige Entscheidung treffen.",
-            "Bei Fragen wende dich bitte an den internen Spieladmin oder HR.",
+            "Bei Fragen wende dich bitte an:\n\nSpieladmin:\nAiyham Alkatranji\n[a.alkatranji@simex-trading.ch](mailto:a.alkatranji@simex-trading.ch)\n\nHR:\nHelle Ituri Rasmussen\n[h.rasmussen@simex-trading.ch](mailto:h.rasmussen@simex-trading.ch)",
           ],
         },
       ],

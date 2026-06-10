@@ -6,6 +6,31 @@ import { useLanguage } from "@/components/language-provider"
 import { Card, CardContent } from "@/components/ui/card"
 
 const SECTION_ICONS = [Users, Database, Eye, ShieldCheck] as const
+const MAIL_LINK_PATTERN = /\[([^\]]+)\]\((mailto:[^)]+)\)/g
+
+function NoticeText({ text }: { text: string }) {
+  const parts = text.split(MAIL_LINK_PATTERN)
+
+  return (
+    <p className="whitespace-pre-line">
+      {parts.map((part, index) => {
+        if (index % 3 === 1) {
+          const href = parts[index + 1]
+
+          return (
+            <a key={`${part}-${index}`} href={href} className="font-bold text-emerald-700 underline underline-offset-2">
+              {part}
+            </a>
+          )
+        }
+
+        if (index % 3 === 2) return null
+
+        return part
+      })}
+    </p>
+  )
+}
 
 export default function PrivacyPage() {
   const { t } = useLanguage()
@@ -51,7 +76,7 @@ export default function PrivacyPage() {
 
                 <div className="space-y-4 text-sm leading-7 text-slate-600">
                   {section.items.map((item) => (
-                    <p key={item}>{item}</p>
+                    <NoticeText key={item} text={item} />
                   ))}
                 </div>
               </CardContent>
