@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import { BarChart3, ClipboardList, Home, Menu, Shield, Trophy, X } from "lucide-react"
+import { BarChart3, ClipboardList, FileText, Home, Menu, Shield, Trophy, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/language-provider"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,7 @@ export function SiteHeader() {
     { href: "/leaderboard", label: t.nav.leaderboard, icon: Trophy },
     { href: "/results", label: t.nav.results, icon: BarChart3 },
     { href: "/rules", label: t.nav.rules, icon: Shield },
+    { href: "/privacy", label: t.nav.privacy, icon: FileText },
   ]
 
   return (

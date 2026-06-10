@@ -22,6 +22,7 @@ export const translations = {
       results: "Results",
       admin: "Admin",
       rules: "Rules",
+      privacy: "Privacy",
     },
     home: {
       title: "Simex World Cup 2026 Prediction Game",
@@ -215,17 +216,21 @@ export const translations = {
       howToParticipate: {
         title: "How to participate",
         items: [
+          "Participation is open to Simex Group employees only.",
           "Enter your real first name and last name.",
           "Select your correct department.",
-          "Submit your prediction for each match before the match starts.",
+          "Submit your prediction carefully. Once submitted, it cannot be changed.",
+          "Management may participate.",
+          "Participation is free.",
         ],
       },
       predictionRules: {
         title: "Prediction rules",
         items: [
+          "One entry per person.",
           "Each employee can submit only one prediction per match.",
-          "Predictions cannot be changed after submission.",
-          "Predictions are locked once the match starts.",
+          "Predictions can only be submitted once and only before kickoff.",
+          "After submission or kickoff, predictions are locked and cannot be changed.",
           "Only submitted predictions are counted.",
         ],
       },
@@ -242,7 +247,7 @@ export const translations = {
       knockoutMatches: {
         title: "Knockout matches",
         items: [
-          "For knockout matches, predict the score after extra time.",
+          "For knockout matches, your score prediction refers to the official match score before any penalty shootout.",
           "Penalty shootout goals do not count as part of the score.",
           "If you predict a draw in a knockout match, you must also choose who advances after penalties.",
           "Correct penalty winner gives +1 bonus point.",
@@ -251,8 +256,9 @@ export const translations = {
       fairPlay: {
         title: "Fair play note",
         items: [
-          "The game is only for fun inside Simex.",
-          "No money is involved.",
+          "This is a free internal Simex prediction game for entertainment purposes.",
+          "Prize ranking: 1st CHF 1,000, 2nd CHF 500, 3rd CHF 300.",
+          "Tie-breaker order: 1. Total points, 2. Number of exact-score predictions, 3. Number of correct winner/draw predictions, 4. Final decision by Simex if still tied.",
           "In unclear cases or technical issues, the admin decision is final.",
         ],
       },
@@ -265,6 +271,41 @@ export const translations = {
         prediction: "Team A 3 - 2 Team B",
         points: "4 points because the winner is correct and the goal difference is correct.",
       },
+    },
+    privacy: {
+      title: "Privacy & Fair Play",
+      subtitle: "A short internal notice about participation, visibility, data use, and fair play.",
+      sections: [
+        {
+          title: "Participation",
+          items: [
+            "This internal prediction game is organized for Simex Group employees only. Participation is free and no payment or purchase is required.",
+            "Each employee may participate only once. Management may also participate.",
+            "The first and last name used in the game must match the participant’s official ID, passport, or residence permit.",
+          ],
+        },
+        {
+          title: "Data use",
+          items: [
+            "To run the game, the app stores your first name, last name, department, match predictions, points, and ranking. This information is used only to manage the prediction game, calculate the leaderboard, and determine the winners.",
+            "The data will be deleted after the tournament and after the prize process is completed, unless Simex needs to keep limited information for internal documentation.",
+          ],
+        },
+        {
+          title: "Leaderboard visibility",
+          items: [
+            "The leaderboard, including participant names, departments, points, and ranking, is publicly visible to anyone who has access to the website link. Participants should only join if they agree that their name and ranking may be shown on the website.",
+            "Prize winners will be confirmed by Simex after all match results, points, and rankings have been reviewed.",
+          ],
+        },
+        {
+          title: "Fair play",
+          items: [
+            "Simex reserves the right to exclude participants in cases of misuse, duplicate entries, false names, non-employee participation, technical manipulation, or behavior that violates the spirit of fair play. In unclear cases, Simex may make a final decision.",
+            "For questions, please contact the internal game admin or HR.",
+          ],
+        },
+      ],
     },
   },
   de: {
@@ -288,6 +329,7 @@ export const translations = {
       results: "Spielergebnisse",
       admin: "Admin",
       rules: "Regeln",
+      privacy: "Datenschutz",
     },
     home: {
       title: "Simex WM 2026 Tippspiel",
@@ -481,17 +523,21 @@ export const translations = {
       howToParticipate: {
         title: "Teilnahme",
         items: [
+          "Teilnahmeberechtigt sind nur Mitarbeitende der Simex Group.",
           "Gib deinen echten Vornamen und Nachnamen ein.",
           "Wähle die richtige Abteilung aus.",
-          "Gib deinen Tipp für jedes Spiel vor Spielbeginn ab.",
+          "Gib deinen Tipp sorgfältig ab. Nach der Abgabe kann er nicht mehr geändert werden.",
+          "Das Management darf teilnehmen.",
+          "Die Teilnahme ist kostenlos.",
         ],
       },
       predictionRules: {
         title: "Tippregeln",
         items: [
+          "Eine Teilnahme pro Person.",
           "Jede Person kann pro Spiel nur einen Tipp abgeben.",
-          "Tipps können nach dem Absenden nicht mehr geändert werden.",
-          "Tipps werden gesperrt, sobald das Spiel beginnt.",
+          "Tipps können nur einmal und nur vor Anpfiff abgegeben werden.",
+          "Nach der Abgabe oder nach Anpfiff sind die Tipps gesperrt und können nicht geändert werden.",
           "Nur abgegebene Tipps werden gezählt.",
         ],
       },
@@ -508,7 +554,7 @@ export const translations = {
       knockoutMatches: {
         title: "K.-o.-Spiele",
         items: [
-          "Bei K.-o.-Spielen tippst du das Ergebnis nach Verlängerung.",
+          "Bei K.-o.-Spielen bezieht sich dein Ergebnis-Tipp auf das offizielle Spielergebnis vor einem möglichen Elfmeterschießen.",
           "Tore aus dem Elfmeterschießen zählen nicht zum Ergebnis.",
           "Wenn du bei einem K.-o.-Spiel ein Unentschieden tippst, musst du zusätzlich auswählen, wer im Elfmeterschießen weiterkommt.",
           "Der richtige Sieger im Elfmeterschießen gibt +1 Bonuspunkt.",
@@ -517,8 +563,9 @@ export const translations = {
       fairPlay: {
         title: "Fair Play",
         items: [
-          "Das Spiel ist nur zum Spass innerhalb von Simex.",
-          "Es geht nicht um Geld.",
+          "Dies ist ein kostenloses internes Simex-Tippspiel zu Unterhaltungszwecken.",
+          "Preise: 1. Platz CHF 1'000, 2. Platz CHF 500, 3. Platz CHF 300.",
+          "Tie-Breaker-Reihenfolge: 1. Gesamtpunkte, 2. Anzahl exakter Ergebnis-Tipps, 3. Anzahl richtiger Sieger-/Unentschieden-Tipps, 4. Finaler Entscheid durch Simex, falls weiterhin Gleichstand besteht.",
           "Bei unklaren Fällen oder technischen Problemen entscheidet der Admin endgültig.",
         ],
       },
@@ -531,6 +578,41 @@ export const translations = {
         prediction: "Team A 3 - 2 Team B",
         points: "4 Punkte, weil der Sieger richtig ist und die Tordifferenz stimmt.",
       },
+    },
+    privacy: {
+      title: "Datenschutz & Fair Play",
+      subtitle: "Ein kurzer interner Hinweis zu Teilnahme, Sichtbarkeit, Datennutzung und Fair Play.",
+      sections: [
+        {
+          title: "Teilnahme",
+          items: [
+            "Dieses interne Tippspiel wird nur für Mitarbeitende der Simex Group organisiert. Die Teilnahme ist kostenlos und es ist keine Zahlung oder kein Kauf erforderlich.",
+            "Jede Mitarbeiterin und jeder Mitarbeiter darf nur einmal teilnehmen. Das Management darf ebenfalls teilnehmen.",
+            "Der im Spiel verwendete Vor- und Nachname muss mit dem offiziellen Ausweis, Pass oder Aufenthaltstitel der teilnehmenden Person übereinstimmen.",
+          ],
+        },
+        {
+          title: "Datennutzung",
+          items: [
+            "Zur Durchführung des Spiels speichert die App deinen Vornamen, Nachnamen, deine Abteilung, deine Spieltipps, Punkte und Rangliste. Diese Informationen werden nur verwendet, um das Tippspiel zu verwalten, die Rangliste zu berechnen und die Gewinner zu bestimmen.",
+            "Die Daten werden nach dem Turnier und nach Abschluss der Preisvergabe gelöscht, sofern Simex keine begrenzten Informationen für interne Dokumentationszwecke aufbewahren muss.",
+          ],
+        },
+        {
+          title: "Sichtbarkeit der Rangliste",
+          items: [
+            "Die Rangliste, einschließlich Namen, Abteilungen, Punkten und Platzierung der Teilnehmenden, ist für alle sichtbar, die Zugriff auf den Website-Link haben. Teilnehmende sollten nur mitmachen, wenn sie damit einverstanden sind, dass ihr Name und ihre Platzierung auf der Website angezeigt werden.",
+            "Die Gewinner der Preise werden von Simex bestätigt, nachdem alle Spielergebnisse, Punkte und Ranglisten geprüft wurden.",
+          ],
+        },
+        {
+          title: "Fair Play",
+          items: [
+            "Simex behält sich das Recht vor, Teilnehmende bei Missbrauch, mehrfacher Teilnahme, falschen Namen, Teilnahme durch nicht berechtigte Personen, technischer Manipulation oder Verhalten gegen den Fair-Play-Gedanken auszuschließen. In unklaren Fällen kann Simex eine endgültige Entscheidung treffen.",
+            "Bei Fragen wende dich bitte an den internen Spieladmin oder HR.",
+          ],
+        },
+      ],
     },
   },
 } as const
