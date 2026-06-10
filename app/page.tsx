@@ -45,6 +45,18 @@ export default function HomePage() {
               {t.home.subtitle}
             </p>
 
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              {t.home.prizes.map((prize) => (
+                <div
+                  key={prize.place}
+                  className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur"
+                >
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-300">{prize.place}</p>
+                  <p className="mt-1 text-xl font-black text-white">{prize.amount}</p>
+                </div>
+              ))}
+            </div>
+
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/submit"
@@ -59,6 +71,13 @@ export default function HomePage() {
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/15"
               >
                 {t.home.cards.leaderboard.title}
+              </Link>
+
+              <Link
+                href="/rules"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-300/35 bg-emerald-500/10 px-6 py-3 text-sm font-bold text-emerald-100 transition hover:bg-emerald-500/20"
+              >
+                {t.home.readRules}
               </Link>
             </div>
           </div>

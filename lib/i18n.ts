@@ -26,21 +26,27 @@ export const translations = {
     },
     home: {
       title: "Simex World Cup 2026 Prediction Game",
-      subtitle: "Predict the match scores, collect points, and climb the leaderboard.",
+      subtitle: "Predict the match scores, collect points, and compete for the top 3 prizes.",
       badge: "World Cup 2026",
+      readRules: "Read Rules",
+      prizes: [
+        { place: "1st Place", amount: "CHF 1,000" },
+        { place: "2nd Place", amount: "CHF 500" },
+        { place: "3rd Place", amount: "CHF 300" },
+      ],
       hubEyebrow: "Simex game",
       hubTitle: "Prediction Hub",
       hubItems: [
         { title: "Submit predictions", desc: "Name, match, winner, and expected score." },
         { title: "Track leaderboard", desc: "See who is leading after each result." },
-        { title: "Internal only", desc: "Built for fun among Simex employees." },
+        { title: "Win prizes", desc: "Top 3 players win CHF 1,000, CHF 500, and CHF 300." },
       ],
       sectionEyebrow: "Get started",
       sectionTitle: "Choose what you want to do",
       features: [
         { title: "Simple entry", desc: "Employees can enter their name and prediction quickly." },
         { title: "Live ranking", desc: "Scores and points stay visible during the tournament." },
-        { title: "For fun only", desc: "No real betting, no login, just a friendly office game." },
+        { title: "Free internal game", desc: "No payment, no betting, just a Simex prediction challenge." },
       ],
       cards: {
         submit: { title: "Submit Prediction", desc: "Enter your score predictions for upcoming matches." },
@@ -333,21 +339,27 @@ export const translations = {
     },
     home: {
       title: "Simex WM 2026 Tippspiel",
-      subtitle: "Tippe die Spielergebnisse, sammle Punkte und steige in der Rangliste auf.",
+      subtitle: "Tippe die Spielergebnisse, sammle Punkte und kämpfe um die Top-3-Preise.",
       badge: "WM 2026",
+      readRules: "Regeln lesen",
+      prizes: [
+        { place: "1. Platz", amount: "CHF 1'000" },
+        { place: "2. Platz", amount: "CHF 500" },
+        { place: "3. Platz", amount: "CHF 300" },
+      ],
       hubEyebrow: "Simex Spiel",
       hubTitle: "Tipp-Zentrale",
       hubItems: [
         { title: "Tipps abgeben", desc: "Name, Spiel, Sieger und erwartetes Ergebnis." },
         { title: "Rangliste verfolgen", desc: "Sieh nach jedem Resultat, wer führt." },
-        { title: "Nur intern", desc: "Für den Spass unter Simex Mitarbeitenden." },
+        { title: "Preise gewinnen", desc: "Die Top 3 gewinnen CHF 1'000, CHF 500 und CHF 300." },
       ],
       sectionEyebrow: "Loslegen",
       sectionTitle: "Wähle aus, was du tun möchtest",
       features: [
         { title: "Einfache Eingabe", desc: "Mitarbeitende können Name und Tipp schnell erfassen." },
         { title: "Aktuelle Rangliste", desc: "Ergebnisse und Punkte bleiben während des Turniers sichtbar." },
-        { title: "Nur zum Spass", desc: "Keine echten Wetten, kein Login, nur ein freundliches internes Spiel." },
+        { title: "Kostenloses internes Spiel", desc: "Keine Zahlung, keine Wette, nur ein Simex-Tippspiel." },
       ],
       cards: {
         submit: { title: "Tipp abgeben", desc: "Gib deine Ergebnistipps für die kommenden Spiele ab." },
