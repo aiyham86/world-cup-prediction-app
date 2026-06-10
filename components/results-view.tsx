@@ -1,10 +1,11 @@
 "use client"
 
 import Image from "next/image"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { CalendarDays, CircleDot, Search } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
 import { teamNames } from "@/lib/i18n"
+import { getDisplayMatchStatus, type DisplayMatchStatus } from "@/lib/match-status"
 import type { Match } from "@/lib/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -107,14 +108,16 @@ function TeamFlag({ teamName }: { teamName: string }) {
   )
 }
 
-function StatusBadge({ status }: { status: Match["status"] }) {
+function StatusBadge({ status }: { status: DisplayMatchStatus }) {
   const { t } = useLanguage()
   const className =
     status === "finished"
       ? "bg-slate-100 text-slate-700 hover:bg-slate-100"
       : status === "live"
         ? "bg-emerald-500 text-white hover:bg-emerald-500"
-        : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
+        : status === "awaiting_result"
+          ? "bg-amber-50 text-amber-700 hover:bg-amber-50"
+          : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
 
   return (
     <Badge variant={status === "upcoming" ? "outline" : "secondary"} className={className}>
@@ -137,8 +140,14 @@ export function ResultsView({ matches }: { matches: Match[] }) {
   const { lang, t } = useLanguage()
   const [search, setSearch] = useState("")
   const [teamFilter, setTeamFilter] = useState("all")
-  const [statusFilter, setStatusFilter] = useState<"all" | Match["status"]>("all")
+  const [statusFilter, setStatusFilter] = useState<"all" | DisplayMatchStatus>("all")
   const [stageFilter, setStageFilter] = useState<"all" | (typeof STAGE_FILTERS)[number]>("all")
+  const [now, setNow] = useState(() => new Date())
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 60_000)
+    return () => window.clearInterval(timer)
+  }, [])
 
   const teamOptions = useMemo(() => {
     const teams = new Map<string, TeamOption>()
@@ -189,7 +198,8 @@ export function ResultsView({ matches }: { matches: Match[] }) {
         const matchesSearch = query === "" || searchableTeams.includes(query)
         const matchesTeam =
           teamFilter === "all" || match.home_team_en === teamFilter || match.away_team_en === teamFilter
-        const matchesStatus = statusFilter === "all" || match.status === statusFilter
+        const displayStatus = getDisplayMatchStatus(match, now)
+        const matchesStatus = statusFilter === "all" || displayStatus === statusFilter
         const matchesStage = stageFilter === "all" || match.stage_en === stageFilter
 
         return matchesSearch && matchesTeam && matchesStatus && matchesStage
@@ -212,7 +222,7 @@ export function ResultsView({ matches }: { matches: Match[] }) {
 
       return groups
     }, [])
-  }, [matches, search, stageFilter, statusFilter, teamFilter])
+  }, [matches, now, search, stageFilter, statusFilter, teamFilter])
 
   return (
     <div className="space-y-8">
@@ -285,7 +295,7 @@ export function ResultsView({ matches }: { matches: Match[] }) {
 
           <label className="flex flex-col gap-2">
             <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{t.results.status}</span>
-            <Select value={statusFilter} onValueChange={(value) => setStatusFilter((value ?? "all") as "all" | Match["status"])}>
+            <Select value={statusFilter} onValueChange={(value) => setStatusFilter((value ?? "all") as "all" | DisplayMatchStatus)}>
               <SelectTrigger className="h-11 w-full">
                 <SelectValue />
               </SelectTrigger>
@@ -293,6 +303,7 @@ export function ResultsView({ matches }: { matches: Match[] }) {
                 <SelectItem value="all">{t.results.all}</SelectItem>
                 <SelectItem value="upcoming">{t.status.upcoming}</SelectItem>
                 <SelectItem value="live">{t.status.live}</SelectItem>
+                <SelectItem value="awaiting_result">{t.status.awaiting_result}</SelectItem>
                 <SelectItem value="finished">{t.status.finished}</SelectItem>
               </SelectContent>
             </Select>
@@ -362,6 +373,7 @@ export function ResultsView({ matches }: { matches: Match[] }) {
                     match.away_score !== null &&
                     match.home_score === match.away_score &&
                     penaltyWinner
+                  const displayStatus = getDisplayMatchStatus(match, now)
 
                   return (
                     <Card key={match.id} className="rounded-2xl border-slate-200 bg-white shadow-sm">
@@ -370,7 +382,7 @@ export function ResultsView({ matches }: { matches: Match[] }) {
                           <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
                             {stage}
                           </Badge>
-                          <StatusBadge status={match.status} />
+                          <StatusBadge status={displayStatus} />
                         </div>
 
                         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">

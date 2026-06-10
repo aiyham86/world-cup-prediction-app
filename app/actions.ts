@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
+import { hasMatchStarted } from "@/lib/match-status"
 import { scorePrediction } from "@/lib/scoring"
 import type { Lang } from "@/lib/types"
 
@@ -11,12 +12,14 @@ const messages = {
   en: {
     duplicate: "You have already submitted a prediction for this match.",
     locked: "Predictions for this match are already locked.",
+    matchStarted: "Match already started.",
     penaltyWinnerRequired: "Please choose who advances after penalties.",
     generic: "Something went wrong. Please try again.",
   },
   de: {
     duplicate: "Du hast für dieses Spiel bereits einen Tipp abgegeben.",
     locked: "Tipps für dieses Spiel sind bereits gesperrt.",
+    matchStarted: "Spiel hat bereits begonnen.",
     penaltyWinnerRequired: "Bitte wähle aus, wer im Elfmeterschießen weiterkommt.",
     generic: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
   },
@@ -76,12 +79,13 @@ export async function submitPrediction(input: {
   // Verify match is still upcoming
   const { data: match, error: matchError } = await supabase
     .from("matches")
-    .select("id, status, stage_en, home_team_en, away_team_en")
+    .select("id, status, match_date, match_time, stage_en, home_team_en, away_team_en")
     .eq("id", input.matchId)
     .single()
 
   if (matchError || !match) return { ok: false, error: m.generic }
   if (match.status !== "upcoming") return { ok: false, error: m.locked }
+  if (hasMatchStarted(match)) return { ok: false, error: m.matchStarted }
 
   const isKnockout = match.stage_en !== "Group Stage"
   const predictedDraw = input.homeScore === input.awayScore

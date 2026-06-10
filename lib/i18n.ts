@@ -103,6 +103,7 @@ export const translations = {
       match: "Please select a match.",
       scores: "Please enter both scores.",
       locked: "Predictions for this match are already locked.",
+      matchStarted: "Match already started.",
       notFound: "Name or PIN not found.",
       generic: "Something went wrong. Please try again.",
       unauthorized: "Admin login required.",
@@ -197,6 +198,7 @@ export const translations = {
       upcoming: "Upcoming",
       live: "Live",
       finished: "Finished",
+      awaiting_result: "Awaiting result",
     },
     stages: {
       "Group Stage": "Group Stage",
@@ -367,6 +369,7 @@ export const translations = {
       match: "Bitte wähle ein Spiel aus.",
       scores: "Bitte gib beide Ergebnisse ein.",
       locked: "Tipps für dieses Spiel sind bereits gesperrt.",
+      matchStarted: "Spiel hat bereits begonnen.",
       notFound: "Name oder PIN wurde nicht gefunden.",
       generic: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
       unauthorized: "Admin-Anmeldung erforderlich.",
@@ -461,6 +464,7 @@ export const translations = {
       upcoming: "Bevorstehend",
       live: "Live",
       finished: "Beendet",
+      awaiting_result: "Ergebnis ausstehend",
     },
     stages: {
       "Group Stage": "Gruppenphase",

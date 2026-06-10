@@ -7,6 +7,7 @@ import { CalendarDays, CircleDot, Info, LogOut, ShieldCheck, Trophy } from "luci
 import { toast } from "sonner"
 import { useLanguage } from "@/components/language-provider"
 import { formatMatchDate, teamNames } from "@/lib/i18n"
+import { getDisplayMatchStatus, type DisplayMatchStatus } from "@/lib/match-status"
 import type { Match } from "@/lib/types"
 import { adminLogout, saveMatchResult } from "@/app/actions"
 import { Button } from "@/components/ui/button"
@@ -95,9 +96,10 @@ function TeamFlag({ teamName }: { teamName: string }) {
   )
 }
 
-function statusClass(status: Match["status"]) {
+function statusClass(status: DisplayMatchStatus) {
   if (status === "finished") return "bg-[#07111f] text-white"
   if (status === "live") return "bg-emerald-500 text-white"
+  if (status === "awaiting_result") return "bg-amber-50 text-amber-700"
   return "bg-slate-100 text-slate-700"
 }
 
@@ -118,8 +120,14 @@ export function AdminForm({ matches }: { matches: Match[] }) {
   const [status, setStatus] = useState<Match["status"]>("upcoming")
   const [saving, setSaving] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
+  const [now, setNow] = useState(() => new Date())
 
   const selectedMatch = matches.find((m) => m.id === matchId)
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 60_000)
+    return () => window.clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     if (selectedMatch) {
@@ -195,6 +203,7 @@ export function AdminForm({ matches }: { matches: Match[] }) {
 
   const selectedNames = selectedMatch ? teamNames(selectedMatch, lang) : null
   const selectedStage = selectedMatch ? (lang === "de" ? selectedMatch.stage_de : selectedMatch.stage_en) : null
+  const selectedDisplayStatus = selectedMatch ? getDisplayMatchStatus(selectedMatch, now) : null
   const selectedHasScore =
     selectedMatch && selectedMatch.home_score !== null && selectedMatch.away_score !== null
   const selectedIsKnockout = selectedMatch?.stage_en !== "Group Stage"
@@ -273,8 +282,8 @@ export function AdminForm({ matches }: { matches: Match[] }) {
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
                     {t.common.matchNumber} #{selectedMatch.match_number}
                   </span>
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass(selectedMatch.status)}`}>
-                    {t.status[selectedMatch.status]}
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass(selectedDisplayStatus!)}`}>
+                    {t.status[selectedDisplayStatus!]}
                   </span>
                 </div>
 

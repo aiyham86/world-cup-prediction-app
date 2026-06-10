@@ -1,11 +1,12 @@
 "use client"
 
 import Image from "next/image"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { CalendarDays, CheckCircle2, Lock, ShieldCheck, Trophy } from "lucide-react"
 import { toast } from "sonner"
 import { useLanguage } from "@/components/language-provider"
 import { matchLabel } from "@/lib/i18n"
+import { hasMatchStarted } from "@/lib/match-status"
 import type { Match } from "@/lib/types"
 import { submitPrediction } from "@/app/actions"
 import { Button } from "@/components/ui/button"
@@ -83,11 +84,23 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
   const [awayScore, setAwayScore] = useState("")
   const [predictedPenaltyWinner, setPredictedPenaltyWinner] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [now, setNow] = useState(() => new Date())
 
-  const upcomingMatches = useMemo(() => matches.filter((m) => m.status === "upcoming"), [matches])
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 60_000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  const upcomingMatches = useMemo(
+    () => matches.filter((m) => m.status === "upcoming" && !hasMatchStarted(m, now)),
+    [matches, now],
+  )
   const selectedMatch = matches.find((m) => m.id === matchId)
   const selectedMatchLabel = selectedMatch ? matchLabel(selectedMatch, lang) : ""
-  const locked = selectedMatch && selectedMatch.status !== "upcoming"
+  const selectedMatchStarted = Boolean(
+    selectedMatch && selectedMatch.status === "upcoming" && hasMatchStarted(selectedMatch, now),
+  )
+  const locked = Boolean(selectedMatch && (selectedMatch.status !== "upcoming" || selectedMatchStarted))
   const isKnockout = selectedMatch?.stage_en !== "Group Stage"
   const predictedDraw = homeScore !== "" && awayScore !== "" && Number(homeScore) === Number(awayScore)
   const showPenaltyWinner = Boolean(selectedMatch && isKnockout && predictedDraw)
@@ -105,6 +118,7 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
       return t.errors.scores
     }
 
+    if (selectedMatchStarted) return t.errors.matchStarted
     if (locked) return t.errors.locked
     if (showPenaltyWinner && !predictedPenaltyWinner) return t.submit.penaltyWinnerRequired
 
@@ -293,7 +307,7 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
               {locked && (
                 <p className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
                   <Lock className="h-4 w-4" />
-                  {t.errors.locked}
+                  {selectedMatchStarted ? t.errors.matchStarted : t.errors.locked}
                 </p>
               )}
 
