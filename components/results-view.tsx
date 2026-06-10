@@ -1,0 +1,394 @@
+"use client"
+
+import Image from "next/image"
+import { useMemo, useState } from "react"
+import { CalendarDays, CircleDot, Search } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
+import { teamNames } from "@/lib/i18n"
+import type { Match } from "@/lib/types"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
+const STAGE_FILTERS = [
+  "Group Stage",
+  "Round of 32",
+  "Round of 16",
+  "Quarter-finals",
+  "Semi-finals",
+  "Third Place",
+  "Final",
+] as const
+
+const TEAM_FLAG_CODES: Record<string, string> = {
+  Mexico: "mx",
+  "South Africa": "za",
+  "South Korea": "kr",
+  Czechia: "cz",
+  Canada: "ca",
+  "Bosnia and Herzegovina": "ba",
+  "United States": "us",
+  Paraguay: "py",
+  Qatar: "qa",
+  Switzerland: "ch",
+  Brazil: "br",
+  Morocco: "ma",
+  Haiti: "ht",
+  Scotland: "gb-sct",
+  Australia: "au",
+  Turkiye: "tr",
+  Türkiye: "tr",
+  Germany: "de",
+  Curacao: "cw",
+  Netherlands: "nl",
+  Japan: "jp",
+  "Ivory Coast": "ci",
+  Ecuador: "ec",
+  Sweden: "se",
+  Tunisia: "tn",
+  Spain: "es",
+  "Cape Verde": "cv",
+  Belgium: "be",
+  Egypt: "eg",
+  "Saudi Arabia": "sa",
+  Uruguay: "uy",
+  Iran: "ir",
+  "New Zealand": "nz",
+  France: "fr",
+  Senegal: "sn",
+  Iraq: "iq",
+  Norway: "no",
+  Argentina: "ar",
+  Algeria: "dz",
+  Austria: "at",
+  Jordan: "jo",
+  Portugal: "pt",
+  "Congo DR": "cd",
+  England: "gb-eng",
+  Croatia: "hr",
+  Ghana: "gh",
+  Panama: "pa",
+  Uzbekistan: "uz",
+  Colombia: "co",
+}
+
+type TeamOption = {
+  en: string
+  de: string
+  flagCode: string
+}
+
+function flagSrc(teamName: string) {
+  const code = TEAM_FLAG_CODES[teamName]
+  return code ? `/flags/${code}.svg` : null
+}
+
+function TeamFlag({ teamName }: { teamName: string }) {
+  const { t } = useLanguage()
+  const src = flagSrc(teamName)
+
+  if (!src) {
+    return (
+      <span className="flex h-6 w-8 shrink-0 items-center justify-center rounded bg-slate-100 text-slate-500 ring-1 ring-slate-200">
+        <CircleDot className="h-4 w-4" />
+      </span>
+    )
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={`${teamName} ${t.common.flag}`}
+      width={32}
+      height={24}
+      className="h-6 w-8 shrink-0 rounded object-cover shadow-sm ring-1 ring-slate-200"
+    />
+  )
+}
+
+function StatusBadge({ status }: { status: Match["status"] }) {
+  const { t } = useLanguage()
+  const className =
+    status === "finished"
+      ? "bg-slate-100 text-slate-700 hover:bg-slate-100"
+      : status === "live"
+        ? "bg-emerald-500 text-white hover:bg-emerald-500"
+        : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
+
+  return (
+    <Badge variant={status === "upcoming" ? "outline" : "secondary"} className={className}>
+      {t.status[status]}
+    </Badge>
+  )
+}
+
+function formatDateHeading(dateStr: string, lang: "en" | "de") {
+  const date = new Date(`${dateStr}T00:00:00`)
+  return new Intl.DateTimeFormat(lang === "de" ? "de-DE" : "en-US", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date)
+}
+
+export function ResultsView({ matches }: { matches: Match[] }) {
+  const { lang, t } = useLanguage()
+  const [search, setSearch] = useState("")
+  const [teamFilter, setTeamFilter] = useState("all")
+  const [statusFilter, setStatusFilter] = useState<"all" | Match["status"]>("all")
+  const [stageFilter, setStageFilter] = useState<"all" | (typeof STAGE_FILTERS)[number]>("all")
+
+  const teamOptions = useMemo(() => {
+    const teams = new Map<string, TeamOption>()
+
+    for (const match of matches) {
+      const homeFlagCode = TEAM_FLAG_CODES[match.home_team_en]
+      const awayFlagCode = TEAM_FLAG_CODES[match.away_team_en]
+
+      if (homeFlagCode && !teams.has(match.home_team_en)) {
+        teams.set(match.home_team_en, {
+          en: match.home_team_en,
+          de: match.home_team_de,
+          flagCode: homeFlagCode,
+        })
+      }
+
+      if (awayFlagCode && !teams.has(match.away_team_en)) {
+        teams.set(match.away_team_en, {
+          en: match.away_team_en,
+          de: match.away_team_de,
+          flagCode: awayFlagCode,
+        })
+      }
+    }
+
+    return Array.from(teams.values()).sort((a, b) => {
+      const nameA = lang === "de" ? a.de : a.en
+      const nameB = lang === "de" ? b.de : b.en
+      return nameA.localeCompare(nameB)
+    })
+  }, [lang, matches])
+
+  const selectedTeam = teamOptions.find((team) => team.en === teamFilter)
+
+  const groupedMatches = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    const visibleMatches = matches
+      .filter((match) => {
+        const searchableTeams = [
+          match.home_team_en,
+          match.away_team_en,
+          match.home_team_de,
+          match.away_team_de,
+        ]
+          .join(" ")
+          .toLowerCase()
+
+        const matchesSearch = query === "" || searchableTeams.includes(query)
+        const matchesTeam =
+          teamFilter === "all" || match.home_team_en === teamFilter || match.away_team_en === teamFilter
+        const matchesStatus = statusFilter === "all" || match.status === statusFilter
+        const matchesStage = stageFilter === "all" || match.stage_en === stageFilter
+
+        return matchesSearch && matchesTeam && matchesStatus && matchesStage
+      })
+      .sort(
+        (a, b) =>
+          a.match_date.localeCompare(b.match_date) ||
+          (a.match_time ?? "").localeCompare(b.match_time ?? "") ||
+          a.match_number - b.match_number
+      )
+
+    return visibleMatches.reduce<Array<{ date: string; matches: Match[] }>>((groups, match) => {
+      const currentGroup = groups[groups.length - 1]
+
+      if (!currentGroup || currentGroup.date !== match.match_date) {
+        groups.push({ date: match.match_date, matches: [match] })
+      } else {
+        currentGroup.matches.push(match)
+      }
+
+      return groups
+    }, [])
+  }, [matches, search, stageFilter, statusFilter, teamFilter])
+
+  return (
+    <div className="space-y-8">
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#07111f] px-6 py-10 text-white shadow-2xl shadow-slate-950/10 sm:px-10 lg:px-12">
+        <Image
+          src="/images/match-results.jpg"
+          alt=""
+          fill
+          priority
+          className="object-cover opacity-25"
+        />
+
+        <div className="absolute inset-0 bg-gradient-to-r from-[#07111f] via-[#07111f]/90 to-[#07111f]/65" />
+        <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl" />
+
+        <div className="relative max-w-3xl">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">
+            <CalendarDays className="h-4 w-4" />
+            {t.common.worldCup}
+          </div>
+
+          <h1 className="text-balance text-4xl font-black tracking-tight sm:text-5xl">{t.results.title}</h1>
+          <p className="mt-5 max-w-2xl text-base leading-8 text-white/70">
+            {t.results.subtitle}
+          </p>
+        </div>
+      </section>
+
+      <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
+        <CardContent className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_180px_220px]">
+          <label className="flex flex-col gap-2">
+            <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{t.results.team}</span>
+            <Select value={teamFilter} onValueChange={(value) => setTeamFilter(value ?? "all")}>
+              <SelectTrigger className="h-11 w-full">
+                {selectedTeam ? (
+                  <span className="flex min-w-0 items-center gap-2">
+                    <TeamFlag teamName={selectedTeam.en} />
+                    <span className="truncate">{lang === "de" ? selectedTeam.de : selectedTeam.en}</span>
+                  </span>
+                ) : (
+                  <SelectValue placeholder={t.results.allTeams} />
+                )}
+              </SelectTrigger>
+              <SelectContent sideOffset={6} className="z-[9999] max-h-80 overflow-y-auto">
+                <SelectItem value="all">{t.results.allTeams}</SelectItem>
+                {teamOptions.map((team) => (
+                  <SelectItem key={team.en} value={team.en}>
+                    <span className="flex min-w-0 items-center gap-2">
+                      <TeamFlag teamName={team.en} />
+                      <span className="truncate">{lang === "de" ? team.de : team.en}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+
+          <label className="flex flex-col gap-2">
+            <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{t.results.searchTeam}</span>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Switzerland"
+                className="h-11 pl-9"
+              />
+            </div>
+          </label>
+
+          <label className="flex flex-col gap-2">
+            <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{t.results.status}</span>
+            <Select value={statusFilter} onValueChange={(value) => setStatusFilter((value ?? "all") as "all" | Match["status"])}>
+              <SelectTrigger className="h-11 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent sideOffset={6} className="z-[9999]">
+                <SelectItem value="all">{t.results.all}</SelectItem>
+                <SelectItem value="upcoming">{t.status.upcoming}</SelectItem>
+                <SelectItem value="live">{t.status.live}</SelectItem>
+                <SelectItem value="finished">{t.status.finished}</SelectItem>
+              </SelectContent>
+            </Select>
+          </label>
+
+          <label className="flex flex-col gap-2">
+            <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{t.results.stage}</span>
+            <Select
+              value={stageFilter}
+              onValueChange={(value) => setStageFilter((value ?? "all") as "all" | (typeof STAGE_FILTERS)[number])}
+            >
+              <SelectTrigger className="h-11 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent sideOffset={6} className="z-[9999] max-h-80 overflow-y-auto">
+                <SelectItem value="all">{t.results.allStages}</SelectItem>
+                {STAGE_FILTERS.map((stage) => (
+                  <SelectItem key={stage} value={stage}>
+                    {t.stages[stage]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+        </CardContent>
+      </Card>
+
+      {groupedMatches.length === 0 ? (
+        <Card className="rounded-2xl border-dashed border-slate-300 bg-white shadow-sm">
+          <CardContent className="py-12 text-center text-sm text-slate-500">
+            {t.results.noMatches}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-8">
+          {groupedMatches.map((group) => (
+            <section key={group.date} className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                  <CalendarDays className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black tracking-tight text-slate-950">
+                    {formatDateHeading(group.date, lang)}
+                  </h2>
+                  <p className="text-sm text-slate-500">
+                    {group.matches.length} {group.matches.length === 1 ? t.common.matchesSingular : t.common.matchesPlural}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                {group.matches.map((match) => {
+                  const { home, away } = teamNames(match, lang)
+                  const stage = lang === "en" ? match.stage_en : match.stage_de
+                  const hasScore = match.home_score !== null && match.away_score !== null
+
+                  return (
+                    <Card key={match.id} className="rounded-2xl border-slate-200 bg-white shadow-sm">
+                      <CardContent className="space-y-4 p-5">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
+                            {stage}
+                          </Badge>
+                          <StatusBadge status={match.status} />
+                        </div>
+
+                        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+                          <div className="flex min-w-0 items-center justify-end gap-2 text-right">
+                            <span className="truncate text-sm font-black text-slate-950">{home}</span>
+                            <TeamFlag teamName={match.home_team_en} />
+                          </div>
+
+                          <span className="min-w-20 rounded-full bg-slate-100 px-4 py-2 text-center text-base font-black text-slate-950 ring-1 ring-slate-200">
+                            {hasScore ? `${match.home_score} - ${match.away_score}` : "-"}
+                          </span>
+
+                          <div className="flex min-w-0 items-center gap-2">
+                            <TeamFlag teamName={match.away_team_en} />
+                            <span className="truncate text-sm font-black text-slate-950">{away}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs font-medium text-slate-500">
+                          <span>{t.common.matchNumber} #{match.match_number}</span>
+                          <span>{match.match_time ?? "-"}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
