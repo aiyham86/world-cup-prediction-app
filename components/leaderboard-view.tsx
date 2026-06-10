@@ -26,6 +26,8 @@ export type LeaderboardPrediction = {
   predictedAwayScore: number
   actualHomeScore: number | null
   actualAwayScore: number | null
+  predictedPenaltyWinner: string | null
+  actualPenaltyWinner: string | null
   matchStatus: "upcoming" | "live" | "finished"
   points: number
   isExactScore: boolean
@@ -126,6 +128,24 @@ function TeamFlag({ teamName }: { teamName: string }) {
 
 function pointsExplanationKey(prediction: LeaderboardPrediction) {
   if (prediction.matchStatus !== "finished") return "pending"
+  const hasPenaltyWinnerContext =
+    prediction.actualHomeScore !== null &&
+    prediction.actualAwayScore !== null &&
+    prediction.actualHomeScore === prediction.actualAwayScore &&
+    prediction.predictedHomeScore === prediction.predictedAwayScore &&
+    prediction.predictedPenaltyWinner !== null &&
+    prediction.actualPenaltyWinner !== null
+  const hasPenaltyWinnerBonus =
+    hasPenaltyWinnerContext &&
+    prediction.predictedPenaltyWinner === prediction.actualPenaltyWinner
+  const hasWrongPenaltyWinner =
+    hasPenaltyWinnerContext &&
+    prediction.predictedPenaltyWinner !== prediction.actualPenaltyWinner
+
+  if (prediction.isExactScore && hasPenaltyWinnerBonus) return "exactScorePenaltyWinner"
+  if (prediction.isExactScore && hasWrongPenaltyWinner) return "exactScorePenaltyWinnerWrong"
+  if (prediction.isCorrectOutcome && hasPenaltyWinnerBonus) return "correctDrawPenaltyWinner"
+  if (prediction.isCorrectOutcome && hasWrongPenaltyWinner) return "correctDrawPenaltyWinnerWrong"
   if (prediction.isExactScore) return "exactScore"
   if (prediction.isCorrectOutcome) return "correctOutcome"
   return "noPoints"
@@ -341,6 +361,18 @@ export function LeaderboardView({
                                     prediction.matchStatus === "finished" &&
                                     prediction.actualHomeScore !== null &&
                                     prediction.actualAwayScore !== null
+                                  const predictedPenaltyWinner =
+                                    prediction.predictedPenaltyWinner === prediction.homeTeamEn
+                                      ? homeTeam
+                                      : prediction.predictedPenaltyWinner === prediction.awayTeamEn
+                                        ? awayTeam
+                                        : null
+                                  const actualPenaltyWinner =
+                                    prediction.actualPenaltyWinner === prediction.homeTeamEn
+                                      ? homeTeam
+                                      : prediction.actualPenaltyWinner === prediction.awayTeamEn
+                                        ? awayTeam
+                                        : null
                                   const explanationKey = pointsExplanationKey(prediction)
                                   const explanation =
                                     explanationKey === "pending"
@@ -366,6 +398,22 @@ export function LeaderboardView({
                                       </div>
 
                                       <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+                                        {predictedPenaltyWinner && (
+                                          <div className="text-sm text-slate-500 lg:text-right">
+                                            <span className="font-bold text-slate-700">
+                                              {t.leaderboard.predictedPenaltyWinner}:{" "}
+                                            </span>
+                                            {predictedPenaltyWinner}
+                                          </div>
+                                        )}
+                                        {predictedPenaltyWinner && (
+                                          <div className="text-sm text-slate-500 lg:text-right">
+                                            <span className="font-bold text-slate-700">
+                                              {t.leaderboard.actualPenaltyWinner}:{" "}
+                                            </span>
+                                            {finished && actualPenaltyWinner ? actualPenaltyWinner : t.common.pending}
+                                          </div>
+                                        )}
                                         <div className="text-sm text-slate-500 lg:text-right">
                                           <span className="font-bold text-slate-700">{t.leaderboard.actual}: </span>
                                           {finished
@@ -380,9 +428,12 @@ export function LeaderboardView({
                                         <Badge
                                           variant="secondary"
                                           className={
-                                            explanationKey === "exactScore"
+                                            explanationKey === "exactScore" ||
+                                            explanationKey === "exactScorePenaltyWinner" ||
+                                            explanationKey === "exactScorePenaltyWinnerWrong"
                                               ? "bg-amber-50 text-amber-800 hover:bg-amber-50"
-                                              : explanationKey === "correctOutcome"
+                                              : explanationKey === "correctOutcome" ||
+                                                  explanationKey === "correctDrawPenaltyWinner"
                                                 ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
                                                 : "bg-slate-100 text-slate-600 hover:bg-slate-100"
                                           }

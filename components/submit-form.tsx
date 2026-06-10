@@ -81,12 +81,16 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
   const [matchId, setMatchId] = useState("")
   const [homeScore, setHomeScore] = useState("")
   const [awayScore, setAwayScore] = useState("")
+  const [predictedPenaltyWinner, setPredictedPenaltyWinner] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   const upcomingMatches = useMemo(() => matches.filter((m) => m.status === "upcoming"), [matches])
   const selectedMatch = matches.find((m) => m.id === matchId)
   const selectedMatchLabel = selectedMatch ? matchLabel(selectedMatch, lang) : ""
   const locked = selectedMatch && selectedMatch.status !== "upcoming"
+  const isKnockout = selectedMatch?.stage_en !== "Group Stage"
+  const predictedDraw = homeScore !== "" && awayScore !== "" && Number(homeScore) === Number(awayScore)
+  const showPenaltyWinner = Boolean(selectedMatch && isKnockout && predictedDraw)
 
   function validate(): string | null {
     if (!firstName.trim()) return t.errors.firstName
@@ -102,6 +106,7 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
     }
 
     if (locked) return t.errors.locked
+    if (showPenaltyWinner && !predictedPenaltyWinner) return t.submit.penaltyWinnerRequired
 
     return null
   }
@@ -126,6 +131,7 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
         matchId,
         homeScore: Number(homeScore),
         awayScore: Number(awayScore),
+        predictedPenaltyWinner: showPenaltyWinner ? predictedPenaltyWinner : null,
         lang,
       })
 
@@ -133,6 +139,7 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
         toast.success(t.success)
         setHomeScore("")
         setAwayScore("")
+        setPredictedPenaltyWinner(null)
       } else {
         toast.error(result.error)
       }
@@ -257,7 +264,13 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="match">{t.submit.match}</Label>
-                <Select value={matchId} onValueChange={(value) => setMatchId(value ?? "")}>
+                <Select
+                  value={matchId}
+                  onValueChange={(value) => {
+                    setMatchId(value ?? "")
+                    setPredictedPenaltyWinner(null)
+                  }}
+                >
                   <SelectTrigger id="match" className="h-11 w-full">
                     <span className={selectedMatch ? "truncate" : "truncate text-muted-foreground"}>
                       {selectedMatch ? selectedMatchLabel : t.submit.selectMatch}
@@ -314,7 +327,10 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
                         min={0}
                         max={20}
                         value={homeScore}
-                        onChange={(e) => setHomeScore(e.target.value)}
+                        onChange={(e) => {
+                          setHomeScore(e.target.value)
+                          setPredictedPenaltyWinner(null)
+                        }}
                         className="h-14 text-center text-2xl font-black"
                       />
                     </div>
@@ -346,7 +362,10 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
                         min={0}
                         max={20}
                         value={awayScore}
-                        onChange={(e) => setAwayScore(e.target.value)}
+                        onChange={(e) => {
+                          setAwayScore(e.target.value)
+                          setPredictedPenaltyWinner(null)
+                        }}
                         className="h-14 text-center text-2xl font-black"
                       />
                     </div>
@@ -354,6 +373,50 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
                 ) : (
                   <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
                     {t.submit.selectMatchFirst}
+                  </div>
+                )}
+
+                {showPenaltyWinner && selectedMatch && (
+                  <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                    <p className="mb-3 text-sm font-bold text-emerald-900">{t.submit.penaltyWinnerTitle}</p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {[
+                        {
+                          value: selectedMatch.home_team_en,
+                          label: lang === "de" ? selectedMatch.home_team_de : selectedMatch.home_team_en,
+                        },
+                        {
+                          value: selectedMatch.away_team_en,
+                          label: lang === "de" ? selectedMatch.away_team_de : selectedMatch.away_team_en,
+                        },
+                      ].map((team) => (
+                        <button
+                          key={team.value}
+                          type="button"
+                          onClick={() => setPredictedPenaltyWinner(team.value)}
+                          className={`flex items-center gap-3 rounded-2xl border bg-white p-4 text-left text-sm font-black transition ${
+                            predictedPenaltyWinner === team.value
+                              ? "border-emerald-500 text-emerald-700 ring-2 ring-emerald-100"
+                              : "border-slate-200 text-slate-950 hover:border-emerald-300"
+                          }`}
+                        >
+                          {flagSrc(team.value) ? (
+                            <Image
+                              src={flagSrc(team.value)!}
+                              alt={`${team.value} ${t.common.flag}`}
+                              width={40}
+                              height={30}
+                              className="h-7 w-10 shrink-0 rounded object-cover shadow-sm ring-1 ring-slate-200"
+                            />
+                          ) : (
+                            <span className="flex h-7 w-10 shrink-0 items-center justify-center rounded bg-slate-100 text-xs">
+                              ⚽
+                            </span>
+                          )}
+                          {team.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

@@ -349,6 +349,19 @@ export function ResultsView({ matches }: { matches: Match[] }) {
                   const { home, away } = teamNames(match, lang)
                   const stage = lang === "en" ? match.stage_en : match.stage_de
                   const hasScore = match.home_score !== null && match.away_score !== null
+                  const penaltyWinner =
+                    match.penalty_winner === match.home_team_en
+                      ? home
+                      : match.penalty_winner === match.away_team_en
+                        ? away
+                        : null
+                  const showPenaltyWinner =
+                    match.status === "finished" &&
+                    match.stage_en !== "Group Stage" &&
+                    match.home_score !== null &&
+                    match.away_score !== null &&
+                    match.home_score === match.away_score &&
+                    penaltyWinner
 
                   return (
                     <Card key={match.id} className="rounded-2xl border-slate-200 bg-white shadow-sm">
@@ -380,6 +393,12 @@ export function ResultsView({ matches }: { matches: Match[] }) {
                           <span>{t.common.matchNumber} #{match.match_number}</span>
                           <span>{match.match_time ?? "-"}</span>
                         </div>
+
+                        {showPenaltyWinner && (
+                          <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+                            {penaltyWinner} {t.results.advancesOnPenalties}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   )

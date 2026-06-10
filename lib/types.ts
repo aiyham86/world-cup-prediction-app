@@ -22,6 +22,7 @@ export type Match = {
   stage_de: string
   home_score: number | null
   away_score: number | null
+  penalty_winner: string | null
   status: "upcoming" | "live" | "finished"
   created_at: string
   updated_at: string
@@ -33,6 +34,7 @@ export type Prediction = {
   match_id: string
   predicted_home_score: number
   predicted_away_score: number
+  predicted_penalty_winner: string | null
   points: number
   is_exact_score: boolean
   is_correct_outcome: boolean

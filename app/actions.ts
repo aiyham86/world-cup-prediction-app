@@ -11,11 +11,13 @@ const messages = {
   en: {
     duplicate: "You have already submitted a prediction for this match.",
     locked: "Predictions for this match are already locked.",
+    penaltyWinnerRequired: "Please choose who advances after penalties.",
     generic: "Something went wrong. Please try again.",
   },
   de: {
     duplicate: "Du hast für dieses Spiel bereits einen Tipp abgegeben.",
     locked: "Tipps für dieses Spiel sind bereits gesperrt.",
+    penaltyWinnerRequired: "Bitte wähle aus, wer im Elfmeterschießen weiterkommt.",
     generic: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
   },
 }
@@ -61,6 +63,7 @@ export async function submitPrediction(input: {
   matchId: string
   homeScore: number
   awayScore: number
+  predictedPenaltyWinner?: string | null
   lang: Lang
 }): Promise<SubmitResult> {
   const m = messages[input.lang]
@@ -73,12 +76,26 @@ export async function submitPrediction(input: {
   // Verify match is still upcoming
   const { data: match, error: matchError } = await supabase
     .from("matches")
-    .select("id, status")
+    .select("id, status, stage_en, home_team_en, away_team_en")
     .eq("id", input.matchId)
     .single()
 
   if (matchError || !match) return { ok: false, error: m.generic }
   if (match.status !== "upcoming") return { ok: false, error: m.locked }
+
+  const isKnockout = match.stage_en !== "Group Stage"
+  const predictedDraw = input.homeScore === input.awayScore
+  const predictedPenaltyWinner =
+    isKnockout && predictedDraw ? (input.predictedPenaltyWinner ?? null) : null
+
+  if (
+    isKnockout &&
+    predictedDraw &&
+    predictedPenaltyWinner !== match.home_team_en &&
+    predictedPenaltyWinner !== match.away_team_en
+  ) {
+    return { ok: false, error: m.penaltyWinnerRequired }
+  }
 
   // Find existing employee by first name + last name
   const { data: existingEmployees, error: employeeSearchError } = await supabase
@@ -130,6 +147,7 @@ export async function submitPrediction(input: {
     match_id: input.matchId,
     predicted_home_score: input.homeScore,
     predicted_away_score: input.awayScore,
+    predicted_penalty_winner: predictedPenaltyWinner,
     points: 0,
     is_exact_score: false,
     is_correct_outcome: false,
@@ -146,6 +164,7 @@ export async function saveMatchResult(input: {
   homeScore: number
   awayScore: number
   status: "upcoming" | "live" | "finished"
+  penaltyWinner?: string | null
 }): Promise<SubmitResult> {
   if (!(await isAdminAuthenticated())) {
     return { ok: false, error: "unauthorized" }
@@ -155,11 +174,34 @@ export async function saveMatchResult(input: {
 
   const isFinished = input.status === "finished"
 
+  const { data: existingMatch, error: existingMatchError } = await supabase
+    .from("matches")
+    .select("id, stage_en, home_team_en, away_team_en")
+    .eq("id", input.matchId)
+    .single()
+
+  if (existingMatchError || !existingMatch) return { ok: false, error: "generic" }
+
+  const isKnockout = existingMatch.stage_en !== "Group Stage"
+  const resultDraw = input.homeScore === input.awayScore
+  const penaltyWinner = isFinished && isKnockout && resultDraw ? (input.penaltyWinner ?? null) : null
+
+  if (
+    isFinished &&
+    isKnockout &&
+    resultDraw &&
+    penaltyWinner !== existingMatch.home_team_en &&
+    penaltyWinner !== existingMatch.away_team_en
+  ) {
+    return { ok: false, error: "penaltyWinnerRequired" }
+  }
+
   const { error: matchError } = await supabase
     .from("matches")
     .update({
       home_score: isFinished ? input.homeScore : input.status === "live" ? input.homeScore : null,
       away_score: isFinished ? input.awayScore : input.status === "live" ? input.awayScore : null,
+      penalty_winner: penaltyWinner,
       status: input.status,
       updated_at: new Date().toISOString(),
     })
@@ -170,7 +212,7 @@ export async function saveMatchResult(input: {
   if (isFinished) {
     const { data: predictions, error: predError } = await supabase
       .from("predictions")
-      .select("id, predicted_home_score, predicted_away_score")
+      .select("id, predicted_home_score, predicted_away_score, predicted_penalty_winner")
       .eq("match_id", input.matchId)
 
     if (predError) return { ok: false, error: "generic" }
@@ -181,6 +223,11 @@ export async function saveMatchResult(input: {
         p.predicted_away_score,
         input.homeScore,
         input.awayScore,
+        {
+          isKnockout,
+          predictedPenaltyWinner: p.predicted_penalty_winner,
+          actualPenaltyWinner: penaltyWinner,
+        },
       )
 
       await supabase

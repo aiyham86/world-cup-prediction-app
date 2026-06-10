@@ -64,6 +64,8 @@ export const translations = {
       formLabel: "Prediction form",
       expectedScore: "Expected score",
       selectMatchFirst: "Select a match first to enter your score prediction.",
+      penaltyWinnerTitle: "Who advances after penalties?",
+      penaltyWinnerRequired: "Please choose who advances after penalties.",
       heroCards: [
         {
           title: "One prediction per match",
@@ -130,6 +132,12 @@ export const translations = {
       exactScore: "Exact score",
       correctOutcome: "Correct outcome",
       noPoints: "No points",
+      predictedPenaltyWinner: "Predicted penalty winner",
+      actualPenaltyWinner: "Actual penalty winner",
+      exactScorePenaltyWinner: "Exact score + penalty winner",
+      exactScorePenaltyWinnerWrong: "Exact score, penalty winner wrong",
+      correctDrawPenaltyWinner: "Correct draw + penalty winner",
+      correctDrawPenaltyWinnerWrong: "Correct draw, penalty winner wrong",
     },
     results: {
       title: "Match Results",
@@ -146,6 +154,7 @@ export const translations = {
       allTeams: "All teams",
       allStages: "All stages",
       noMatches: "No matches found for the selected filters.",
+      advancesOnPenalties: "advances on penalties",
     },
     admin: {
       title: "Admin Results",
@@ -172,6 +181,8 @@ export const translations = {
       noResultYet: "No result yet",
       resultUpdate: "Result update",
       recalculateInfo: "Saving a finished result recalculates prediction points automatically.",
+      penaltyWinner: "Penalty winner",
+      penaltyWinnerRequired: "Please choose the penalty winner.",
       login: {
         title: "Admin access",
         subtitle: "Password required",
@@ -222,15 +233,17 @@ export const translations = {
           { label: "Exact score", points: "5 pts" },
           { label: "Correct winner or draw", points: "3 pts" },
           { label: "Goal difference bonus", points: "+1" },
+          { label: "Correct penalty winner", points: "+1" },
           { label: "Wrong prediction", points: "0 pts" },
         ],
       },
       knockoutMatches: {
         title: "Knockout matches",
         items: [
-          "The final score after extra time counts.",
-          "Penalty shootout goals do not count as part of the predicted score.",
-          "Example: if the match is 1-1 after extra time and one team wins on penalties, the result remains 1-1 for prediction scoring.",
+          "For knockout matches, predict the score after extra time.",
+          "Penalty shootout goals do not count as part of the score.",
+          "If you predict a draw in a knockout match, you must also choose who advances after penalties.",
+          "Correct penalty winner gives +1 bonus point.",
         ],
       },
       fairPlay: {
@@ -315,6 +328,8 @@ export const translations = {
       formLabel: "Tippformular",
       expectedScore: "Erwartetes Ergebnis",
       selectMatchFirst: "Wähle zuerst ein Spiel aus, um deinen Tipp einzugeben.",
+      penaltyWinnerTitle: "Wer kommt nach dem Elfmeterschießen weiter?",
+      penaltyWinnerRequired: "Bitte wähle aus, wer im Elfmeterschießen weiterkommt.",
       heroCards: [
         {
           title: "Ein Tipp pro Spiel",
@@ -381,6 +396,12 @@ export const translations = {
       exactScore: "Exaktes Ergebnis",
       correctOutcome: "Richtige Tendenz",
       noPoints: "Keine Punkte",
+      predictedPenaltyWinner: "Getippter Elfmeterschießen-Sieger",
+      actualPenaltyWinner: "Tatsächlicher Elfmeterschießen-Sieger",
+      exactScorePenaltyWinner: "Exaktes Ergebnis + Elfmeterschießen-Sieger",
+      exactScorePenaltyWinnerWrong: "Exaktes Ergebnis, Elfmeterschießen-Sieger falsch",
+      correctDrawPenaltyWinner: "Richtiges Unentschieden + Elfmeterschießen-Sieger",
+      correctDrawPenaltyWinnerWrong: "Richtiges Unentschieden, Elfmeterschießen-Sieger falsch",
     },
     results: {
       title: "Spielergebnisse",
@@ -397,6 +418,7 @@ export const translations = {
       allTeams: "Alle Teams",
       allStages: "Alle Phasen",
       noMatches: "Keine Spiele für die ausgewählten Filter gefunden.",
+      advancesOnPenalties: "kommt im Elfmeterschießen weiter",
     },
     admin: {
       title: "Ergebnisse verwalten",
@@ -423,6 +445,8 @@ export const translations = {
       noResultYet: "Noch kein Ergebnis",
       resultUpdate: "Ergebnis aktualisieren",
       recalculateInfo: "Beim Speichern eines beendeten Spiels werden die Tipp-Punkte automatisch neu berechnet.",
+      penaltyWinner: "Sieger im Elfmeterschießen",
+      penaltyWinnerRequired: "Bitte wähle den Sieger im Elfmeterschießen aus.",
       login: {
         title: "Admin-Zugang",
         subtitle: "Passwort erforderlich",
@@ -473,15 +497,17 @@ export const translations = {
           { label: "Exaktes Ergebnis", points: "5 Punkte" },
           { label: "Richtiger Sieger oder Unentschieden", points: "3 Punkte" },
           { label: "Tordifferenz-Bonus", points: "+1" },
+          { label: "Richtiger Sieger im Elfmeterschießen", points: "+1" },
           { label: "Falscher Tipp", points: "0 Punkte" },
         ],
       },
       knockoutMatches: {
         title: "K.-o.-Spiele",
         items: [
-          "Das Endergebnis nach Verlängerung zählt.",
-          "Tore aus dem Elfmeterschießen zählen nicht zum getippten Ergebnis.",
-          "Beispiel: Wenn ein Spiel nach Verlängerung 1:1 steht und ein Team im Elfmeterschießen gewinnt, bleibt das Ergebnis für die Tippwertung 1:1.",
+          "Bei K.-o.-Spielen tippst du das Ergebnis nach Verlängerung.",
+          "Tore aus dem Elfmeterschießen zählen nicht zum Ergebnis.",
+          "Wenn du bei einem K.-o.-Spiel ein Unentschieden tippst, musst du zusätzlich auswählen, wer im Elfmeterschießen weiterkommt.",
+          "Der richtige Sieger im Elfmeterschießen gibt +1 Bonuspunkt.",
         ],
       },
       fairPlay: {

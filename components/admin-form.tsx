@@ -114,6 +114,7 @@ export function AdminForm({ matches }: { matches: Match[] }) {
   const [matchId, setMatchId] = useState("")
   const [homeScore, setHomeScore] = useState("")
   const [awayScore, setAwayScore] = useState("")
+  const [penaltyWinner, setPenaltyWinner] = useState<string | null>(null)
   const [status, setStatus] = useState<Match["status"]>("upcoming")
   const [saving, setSaving] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
@@ -124,6 +125,7 @@ export function AdminForm({ matches }: { matches: Match[] }) {
     if (selectedMatch) {
       setHomeScore(selectedMatch.home_score !== null ? String(selectedMatch.home_score) : "")
       setAwayScore(selectedMatch.away_score !== null ? String(selectedMatch.away_score) : "")
+      setPenaltyWinner(selectedMatch.penalty_winner)
       setStatus(selectedMatch.status)
     }
   }, [selectedMatch])
@@ -139,6 +141,13 @@ export function AdminForm({ matches }: { matches: Match[] }) {
       toast.error(t.errors.scores)
       return
     }
+    const selectedIsKnockout = selectedMatch?.stage_en !== "Group Stage"
+    const resultDraw = Number(homeScore || 0) === Number(awayScore || 0)
+    const needsPenaltyWinner = status === "finished" && Boolean(selectedMatch && selectedIsKnockout && resultDraw)
+    if (needsPenaltyWinner && !penaltyWinner) {
+      toast.error(t.admin.penaltyWinnerRequired)
+      return
+    }
 
     setSaving(true)
     try {
@@ -147,6 +156,7 @@ export function AdminForm({ matches }: { matches: Match[] }) {
         homeScore: Number(homeScore || 0),
         awayScore: Number(awayScore || 0),
         status,
+        penaltyWinner: needsPenaltyWinner ? penaltyWinner : null,
       })
       if (result.ok) {
         toast.success(t.admin.success)
@@ -154,6 +164,8 @@ export function AdminForm({ matches }: { matches: Match[] }) {
       } else if (result.error === "unauthorized") {
         toast.error(t.errors.unauthorized)
         router.refresh()
+      } else if (result.error === "penaltyWinnerRequired") {
+        toast.error(t.admin.penaltyWinnerRequired)
       } else {
         toast.error(t.errors.generic)
       }
@@ -185,6 +197,9 @@ export function AdminForm({ matches }: { matches: Match[] }) {
   const selectedStage = selectedMatch ? (lang === "de" ? selectedMatch.stage_de : selectedMatch.stage_en) : null
   const selectedHasScore =
     selectedMatch && selectedMatch.home_score !== null && selectedMatch.away_score !== null
+  const selectedIsKnockout = selectedMatch?.stage_en !== "Group Stage"
+  const editedResultDraw = homeScore !== "" && awayScore !== "" && Number(homeScore) === Number(awayScore)
+  const showPenaltyWinner = Boolean(selectedMatch && selectedIsKnockout && status === "finished" && editedResultDraw)
   const homeScoreLabel = selectedNames
     ? `${selectedNames.home} ${t.admin.scoreSuffix}`
     : t.admin.teamOneScore
@@ -337,7 +352,10 @@ export function AdminForm({ matches }: { matches: Match[] }) {
                     min={0}
                     max={20}
                     value={homeScore}
-                    onChange={(e) => setHomeScore(e.target.value)}
+                    onChange={(e) => {
+                      setHomeScore(e.target.value)
+                      setPenaltyWinner(null)
+                    }}
                     className="h-14 text-center text-2xl font-black"
                   />
                 </div>
@@ -349,7 +367,10 @@ export function AdminForm({ matches }: { matches: Match[] }) {
                     min={0}
                     max={20}
                     value={awayScore}
-                    onChange={(e) => setAwayScore(e.target.value)}
+                    onChange={(e) => {
+                      setAwayScore(e.target.value)
+                      setPenaltyWinner(null)
+                    }}
                     className="h-14 text-center text-2xl font-black"
                   />
                 </div>
@@ -357,7 +378,13 @@ export function AdminForm({ matches }: { matches: Match[] }) {
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="adminStatus">{t.admin.status}</Label>
-                <Select value={status} onValueChange={(value) => setStatus((value ?? "upcoming") as Match["status"])}>
+                <Select
+                  value={status}
+                  onValueChange={(value) => {
+                    setStatus((value ?? "upcoming") as Match["status"])
+                    setPenaltyWinner(null)
+                  }}
+                >
                   <SelectTrigger id="adminStatus" className="h-11 w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -368,6 +395,32 @@ export function AdminForm({ matches }: { matches: Match[] }) {
                   </SelectContent>
                 </Select>
               </div>
+
+              {showPenaltyWinner && selectedMatch && selectedNames && (
+                <div className="flex flex-col gap-2">
+                  <Label>{t.admin.penaltyWinner}</Label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {[
+                      { value: selectedMatch.home_team_en, label: selectedNames.home },
+                      { value: selectedMatch.away_team_en, label: selectedNames.away },
+                    ].map((team) => (
+                      <button
+                        key={team.value}
+                        type="button"
+                        onClick={() => setPenaltyWinner(team.value)}
+                        className={`flex items-center gap-3 rounded-2xl border bg-white p-4 text-left text-sm font-black transition ${
+                          penaltyWinner === team.value
+                            ? "border-emerald-500 text-emerald-700 ring-2 ring-emerald-100"
+                            : "border-slate-200 text-slate-950 hover:border-emerald-300"
+                        }`}
+                      >
+                        <TeamFlag teamName={team.value} />
+                        {team.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
