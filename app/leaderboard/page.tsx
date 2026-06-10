@@ -70,9 +70,7 @@ export default async function LeaderboardPage() {
       (a, b) =>
         b.points - a.points ||
         b.exactScores - a.exactScores ||
-        b.correctOutcomes - a.correctOutcomes ||
-        a.predictions - b.predictions ||
-        a.name.localeCompare(b.name)
+        b.correctOutcomes - a.correctOutcomes
     )
 
   for (let index = 0; index < rows.length; index += 1) {
@@ -82,8 +80,7 @@ export default async function LeaderboardPage() {
       previous &&
       previous.points === current.points &&
       previous.exactScores === current.exactScores &&
-      previous.correctOutcomes === current.correctOutcomes &&
-      previous.predictions === current.predictions
+      previous.correctOutcomes === current.correctOutcomes
 
     current.displayRank = tiedWithPrevious ? previous.displayRank : index + 1
   }
