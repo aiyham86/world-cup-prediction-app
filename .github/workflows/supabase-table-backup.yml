@@ -38,7 +38,7 @@ jobs:
           TIMESTAMP=$(date -u +"%Y-%m-%d_%H-00")
           FILE="supabase_backups/backup_${TIMESTAMP}.sql"
 
-          pg_dump "$DATABASE_URL" \
+          /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" \
             --data-only \
             --column-inserts \
             --table=public.employees \
