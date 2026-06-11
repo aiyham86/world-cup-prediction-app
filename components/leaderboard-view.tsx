@@ -176,10 +176,22 @@ export function LeaderboardView({
   const [departmentFilter, setDepartmentFilter] = useState("all")
   const [sort, setSort] = useState<SortState>(null)
 
-  const leader = rows[0]
   const departmentLabel = (dept: string) =>
     t.departments[dept as keyof typeof t.departments] ?? dept
   const collator = useMemo(() => new Intl.Collator(lang), [lang])
+  const topLeaderRows = rows.filter((row) => row.displayRank === 1 && row.points > 0)
+  const leaderSummary =
+    topLeaderRows.length === 0
+      ? { label: t.leaderboard.currentLeader, value: t.leaderboard.none }
+      : topLeaderRows.length === 1
+        ? { label: t.leaderboard.currentLeader, value: topLeaderRows[0].name }
+        : {
+            label: t.leaderboard.currentLeaders,
+            value:
+              topLeaderRows.length <= 3
+                ? topLeaderRows.map((row) => row.name).join(", ")
+                : `${topLeaderRows.length} ${t.leaderboard.playersTied}`,
+          }
 
   const departmentOptions = useMemo(
     () =>
@@ -241,7 +253,7 @@ export function LeaderboardView({
   const alignSortableHeadClass = `${sortableHeadClass} justify-end`
 
   const stats = [
-    { icon: Trophy, label: t.leaderboard.currentLeader, value: hasRealLeader && leader ? leader.name : t.leaderboard.none },
+    { icon: Trophy, label: leaderSummary.label, value: leaderSummary.value, wrapValue: true },
     { icon: Users, label: t.leaderboard.totalPlayers, value: String(rows.length) },
     { icon: ListChecks, label: t.leaderboard.totalPredictions, value: String(totalPredictions) },
     {
@@ -283,9 +295,9 @@ export function LeaderboardView({
             <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">
-                  {t.leaderboard.currentLeader}
+                  {leaderSummary.label}
                 </p>
-                <p className="mt-2 truncate text-lg font-black">{hasRealLeader && leader ? leader.name : t.leaderboard.none}</p>
+                <p className="mt-2 line-clamp-2 break-words text-lg font-black">{leaderSummary.value}</p>
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">
@@ -313,7 +325,7 @@ export function LeaderboardView({
               </span>
               <div className="min-w-0">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{s.label}</p>
-                <p className="mt-1 truncate text-lg font-black text-slate-950">{s.value}</p>
+                <p className={`mt-1 text-lg font-black text-slate-950 ${s.wrapValue ? "line-clamp-2 break-words" : "truncate"}`}>{s.value}</p>
               </div>
             </CardContent>
           </Card>
