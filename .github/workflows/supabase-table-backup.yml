@@ -1,0 +1,61 @@
+name: Supabase Table Backup
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # every hour
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Create backup folder
+        run: |
+          mkdir -p supabase_backups
+
+      - name: Backup selected tables
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%d_%H-00")
+          FILE="supabase_backups/backup_${TIMESTAMP}.sql"
+
+          pg_dump "$DATABASE_URL" \
+            --data-only \
+            --column-inserts \
+            --table=public.employees \
+            --table=public.matches \
+            --table=public.predictions \
+            > "$FILE"
+
+          gzip "$FILE"
+
+      - name: Delete backups older than 72 hours
+        run: |
+          find supabase_backups -name "*.sql.gz" -type f -mmin +4320 -delete
+
+      - name: Commit backup files
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add supabase_backups/
+
+          if git diff --cached --quiet; then
+            echo "No backup changes to commit"
+          else
+            git commit -m "Hourly Supabase table backup"
+            git push
+          fi
