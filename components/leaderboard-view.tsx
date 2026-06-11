@@ -1,11 +1,13 @@
 "use client"
 
 import Image from "next/image"
-import { Fragment, useState } from "react"
+import { Fragment, useMemo, useState } from "react"
 import { Trophy, Users, ListChecks, Building2, Crown, Medal, Minus, Plus } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -45,6 +47,13 @@ export type LeaderboardRow = {
   predictions: number
   predictionsList: LeaderboardPrediction[]
 }
+
+type SortColumn = "name" | "department" | "points" | "exactScores" | "correctOutcomes" | "predictions"
+type SortDirection = "asc" | "desc"
+type SortState = {
+  column: SortColumn
+  direction: SortDirection
+} | null
 
 const TEAM_FLAG_CODES: Record<string, string> = {
   Mexico: "mx",
@@ -164,10 +173,72 @@ export function LeaderboardView({
 }) {
   const { lang, t } = useLanguage()
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null)
+  const [departmentFilter, setDepartmentFilter] = useState("all")
+  const [sort, setSort] = useState<SortState>(null)
 
   const leader = rows[0]
   const departmentLabel = (dept: string) =>
     t.departments[dept as keyof typeof t.departments] ?? dept
+  const collator = useMemo(() => new Intl.Collator(lang), [lang])
+
+  const departmentOptions = useMemo(
+    () =>
+      Array.from(new Set(rows.map((row) => row.department)))
+        .filter(Boolean)
+        .sort((a, b) => collator.compare(departmentLabel(a), departmentLabel(b))),
+    [collator, rows, t]
+  )
+
+  const visibleRows = useMemo(() => {
+    const filteredRows =
+      departmentFilter === "all"
+        ? rows
+        : rows.filter((row) => row.department === departmentFilter)
+
+    if (!sort) return filteredRows
+
+    const directionMultiplier = sort.direction === "asc" ? 1 : -1
+
+    return [...filteredRows].sort((a, b) => {
+      let result = 0
+
+      if (sort.column === "name") {
+        result = collator.compare(a.name, b.name)
+      } else if (sort.column === "department") {
+        result = collator.compare(departmentLabel(a.department), departmentLabel(b.department))
+      } else {
+        result = a[sort.column] - b[sort.column]
+      }
+
+      return result * directionMultiplier
+    })
+  }, [collator, departmentFilter, rows, sort, t])
+
+  const toggleSort = (column: SortColumn) => {
+    setSort((current) => {
+      if (current?.column === column) {
+        return { column, direction: current.direction === "asc" ? "desc" : "asc" }
+      }
+
+      const numericColumns: SortColumn[] = ["points", "exactScores", "correctOutcomes", "predictions"]
+      return { column, direction: numericColumns.includes(column) ? "desc" : "asc" }
+    })
+  }
+
+  const resetOfficialRanking = () => {
+    setDepartmentFilter("all")
+    setSort(null)
+  }
+
+  const sortIndicator = (column: SortColumn) => {
+    if (sort?.column !== column) return null
+    return <span className="text-emerald-600">{sort.direction === "asc" ? "↑" : "↓"}</span>
+  }
+
+  const sortableHeadClass =
+    "inline-flex items-center gap-1.5 rounded-md text-xs font-bold uppercase tracking-[0.1em] transition hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+
+  const alignSortableHeadClass = `${sortableHeadClass} justify-end`
 
   const stats = [
     { icon: Trophy, label: t.leaderboard.currentLeader, value: hasRealLeader && leader ? leader.name : t.leaderboard.none },
@@ -181,7 +252,7 @@ export function LeaderboardView({
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="relative left-1/2 w-[calc(100vw-2rem)] max-w-7xl -translate-x-1/2 space-y-8 sm:w-[calc(100vw-3rem)] lg:w-[calc(100vw-4rem)]">
       <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#07111f] px-6 py-10 text-white shadow-2xl shadow-slate-950/10 sm:px-10 lg:px-12">
         <Image
           src="/images/leaderboard.jpg"
@@ -261,48 +332,100 @@ export function LeaderboardView({
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <Table>
+          <div className="grid gap-4 border-b border-slate-200 bg-white px-4 py-4 sm:px-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+            <div className="grid gap-3 sm:max-w-xs">
+              <label htmlFor="leaderboardDepartment" className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
+                {t.leaderboard.departmentFilterLabel}
+              </label>
+              <Select value={departmentFilter} onValueChange={(value) => setDepartmentFilter(value ?? "all")}>
+                <SelectTrigger id="leaderboardDepartment" className="h-10 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent sideOffset={6} className="z-[9999] max-h-80 overflow-y-auto">
+                  <SelectItem value="all">{t.leaderboard.allDepartments}</SelectItem>
+                  {departmentOptions.map((department) => (
+                    <SelectItem key={department} value={department}>
+                      {departmentLabel(department)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-3 lg:items-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={resetOfficialRanking}
+                className="h-10 w-full border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 sm:w-auto"
+              >
+                {t.leaderboard.officialRanking}
+              </Button>
+              <p className="max-w-2xl text-sm leading-6 text-slate-500 lg:text-right">
+                {t.leaderboard.sortHelper}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <Table className="min-w-[720px] lg:min-w-0">
               <TableHeader>
                 <TableRow className="bg-white">
-                  <TableHead className="w-20 px-6 py-4 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
+                  <TableHead className="w-16 px-3 py-3 text-xs font-bold uppercase tracking-[0.1em] text-slate-500 sm:px-4">
                     {t.leaderboard.rank}
                   </TableHead>
-                  <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
-                    {t.leaderboard.name}
+                  <TableHead className="px-3 py-3 text-slate-500 sm:px-4">
+                    <button type="button" onClick={() => toggleSort("name")} className={sortableHeadClass}>
+                      {t.leaderboard.name}
+                      {sortIndicator("name")}
+                    </button>
                   </TableHead>
-                  <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
-                    {t.leaderboard.department}
+                  <TableHead className="px-3 py-3 text-slate-500 sm:px-4">
+                    <button type="button" onClick={() => toggleSort("department")} className={sortableHeadClass}>
+                      {t.leaderboard.department}
+                      {sortIndicator("department")}
+                    </button>
                   </TableHead>
-                  <TableHead className="px-6 py-4 text-right text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
-                    {t.leaderboard.points}
+                  <TableHead className="px-3 py-3 text-right text-slate-500 sm:px-4">
+                    <button type="button" onClick={() => toggleSort("points")} className={alignSortableHeadClass}>
+                      {t.leaderboard.points}
+                      {sortIndicator("points")}
+                    </button>
                   </TableHead>
-                  <TableHead className="px-6 py-4 text-right text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
-                    {t.leaderboard.exact}
+                  <TableHead className="px-3 py-3 text-right text-slate-500 sm:px-4">
+                    <button type="button" onClick={() => toggleSort("exactScores")} className={alignSortableHeadClass}>
+                      {t.leaderboard.exact}
+                      {sortIndicator("exactScores")}
+                    </button>
                   </TableHead>
-                  <TableHead className="px-6 py-4 text-right text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
-                    {t.leaderboard.outcomes}
+                  <TableHead className="px-3 py-3 text-right text-slate-500 sm:px-4">
+                    <button type="button" onClick={() => toggleSort("correctOutcomes")} className={alignSortableHeadClass}>
+                      {t.leaderboard.outcomes}
+                      {sortIndicator("correctOutcomes")}
+                    </button>
                   </TableHead>
-                  <TableHead className="px-6 py-4 text-right text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
-                    {t.leaderboard.predictions}
+                  <TableHead className="px-3 py-3 text-right text-slate-500 sm:px-4">
+                    <button type="button" onClick={() => toggleSort("predictions")} className={alignSortableHeadClass}>
+                      {t.leaderboard.predictions}
+                      {sortIndicator("predictions")}
+                    </button>
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.length === 0 ? (
+                {visibleRows.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
                       {t.leaderboard.empty}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  rows.map((row, index) => {
+                  visibleRows.map((row) => {
                     const expanded = expandedRowId === row.id
 
                     return (
                       <Fragment key={row.id}>
                         <TableRow className="border-slate-100">
-                          <TableCell className="px-6 py-4 font-medium">
+                          <TableCell className="px-3 py-3 font-medium sm:px-4">
                             {hasRealLeader && row.displayRank === 1 ? (
                               <span className="inline-flex h-8 min-w-8 items-center justify-center gap-1 rounded-full bg-amber-100 px-2 text-xs font-black text-amber-800 ring-1 ring-amber-200">
                                 <Crown className="h-3.5 w-3.5" />
@@ -318,7 +441,7 @@ export function LeaderboardView({
                               </span>
                             )}
                           </TableCell>
-                          <TableCell className="px-6 py-4 font-bold text-slate-950">
+                          <TableCell className="px-3 py-3 font-bold text-slate-950 sm:px-4">
                             <div className="flex items-center gap-3">
                               <button
                                 type="button"
@@ -331,28 +454,28 @@ export function LeaderboardView({
                               <span>{row.name}</span>
                             </div>
                           </TableCell>
-                          <TableCell className="px-6 py-4">
+                          <TableCell className="px-3 py-3 sm:px-4">
                             <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
                               {departmentLabel(row.department)}
                             </Badge>
                           </TableCell>
-                          <TableCell className="px-6 py-4 text-right text-lg font-black text-emerald-600">
+                          <TableCell className="px-3 py-3 text-right text-lg font-black text-emerald-600 sm:px-4">
                             {row.points}
                           </TableCell>
-                          <TableCell className="px-6 py-4 text-right font-medium text-slate-500">
+                          <TableCell className="px-3 py-3 text-right font-medium text-slate-500 sm:px-4">
                             {row.exactScores}
                           </TableCell>
-                          <TableCell className="px-6 py-4 text-right font-medium text-slate-500">
+                          <TableCell className="px-3 py-3 text-right font-medium text-slate-500 sm:px-4">
                             {row.correctOutcomes}
                           </TableCell>
-                          <TableCell className="px-6 py-4 text-right font-medium text-slate-500">
+                          <TableCell className="px-3 py-3 text-right font-medium text-slate-500 sm:px-4">
                             {row.predictions}
                           </TableCell>
                         </TableRow>
 
                         {expanded && (
                           <TableRow className="border-slate-100 bg-slate-50/80">
-                            <TableCell colSpan={7} className="px-6 py-5">
+                            <TableCell colSpan={7} className="px-3 py-5 sm:px-4">
                               <div className="grid gap-3">
                                 {row.predictionsList.map((prediction) => {
                                   const homeTeam = lang === "de" ? prediction.homeTeamDe : prediction.homeTeamEn
