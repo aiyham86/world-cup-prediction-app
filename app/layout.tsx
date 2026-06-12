@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   title: 'Simex World Cup 2026 Tippspiel',
   description:
     'Internal Simex prediction game for the World Cup 2026. Predict match scores, collect points, and climb the leaderboard.',
-  generator: 'v0.app',
 }
 
 export default function RootLayout({
