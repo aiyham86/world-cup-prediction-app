@@ -9,7 +9,7 @@ import { useLanguage } from "@/components/language-provider"
 import { matchLabel } from "@/lib/i18n"
 import { hasMatchStarted } from "@/lib/match-status"
 import type { Match } from "@/lib/types"
-import { submitPrediction } from "@/app/actions"
+import { getPredictedMatchIdsForEmployee, submitPrediction } from "@/app/actions"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -85,6 +85,8 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
   const [awayScore, setAwayScore] = useState("")
   const [predictedPenaltyWinner, setPredictedPenaltyWinner] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [checkingPreviousPredictions, setCheckingPreviousPredictions] = useState(false)
+  const [predictedMatchIds, setPredictedMatchIds] = useState<string[]>([])
   const [now, setNow] = useState(() => new Date())
 
   useEffect(() => {
@@ -92,10 +94,47 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
     return () => window.clearInterval(timer)
   }, [])
 
+  const shouldCheckPreviousPredictions = firstName.trim().length >= 2 && lastName.trim().length >= 2
+
+  useEffect(() => {
+    if (!shouldCheckPreviousPredictions) {
+      setPredictedMatchIds([])
+      setCheckingPreviousPredictions(false)
+      return
+    }
+
+    let cancelled = false
+    const timer = window.setTimeout(async () => {
+      setCheckingPreviousPredictions(true)
+
+      try {
+        const result = await getPredictedMatchIdsForEmployee({ firstName, lastName })
+
+        if (cancelled) return
+        setPredictedMatchIds(result.ok ? result.matchIds : [])
+      } finally {
+        if (!cancelled) {
+          setCheckingPreviousPredictions(false)
+        }
+      }
+    }, 300)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [firstName, lastName, shouldCheckPreviousPredictions])
+
   const upcomingMatches = useMemo(
     () => matches.filter((m) => m.status === "upcoming" && !hasMatchStarted(m, now)),
     [matches, now],
   )
+  const availableMatches = useMemo(() => {
+    if (!shouldCheckPreviousPredictions) return upcomingMatches
+
+    const predicted = new Set(predictedMatchIds)
+    return upcomingMatches.filter((match) => !predicted.has(match.id))
+  }, [predictedMatchIds, shouldCheckPreviousPredictions, upcomingMatches])
   const selectedMatch = matches.find((m) => m.id === matchId)
   const selectedMatchLabel = selectedMatch ? matchLabel(selectedMatch, lang) : ""
   const selectedMatchStarted = Boolean(
@@ -105,6 +144,14 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
   const isKnockout = selectedMatch?.stage_en !== "Group Stage"
   const predictedDraw = homeScore !== "" && awayScore !== "" && Number(homeScore) === Number(awayScore)
   const showPenaltyWinner = Boolean(selectedMatch && isKnockout && predictedDraw)
+
+  useEffect(() => {
+    if (!matchId) return
+    if (availableMatches.some((match) => match.id === matchId)) return
+
+    setMatchId("")
+    setPredictedPenaltyWinner(null)
+  }, [availableMatches, matchId])
 
   function validate(): string | null {
     if (!firstName.trim()) return t.errors.firstName
@@ -152,6 +199,8 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
 
       if (result.ok) {
         toast.success(t.success)
+        setPredictedMatchIds((current) => Array.from(new Set([...current, matchId])))
+        setMatchId("")
         setHomeScore("")
         setAwayScore("")
         setPredictedPenaltyWinner(null)
@@ -296,13 +345,25 @@ export function SubmitForm({ matches }: { matches: Match[] }) {
                     sideOffset={6}
                     className="z-[9999] max-h-80 overflow-y-auto"
                   >
-                    {upcomingMatches.map((m) => (
+                    {availableMatches.map((m) => (
                       <SelectItem key={m.id} value={m.id}>
                         {matchLabel(m, lang)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {(checkingPreviousPredictions || shouldCheckPreviousPredictions) && (
+                  <p className="text-xs leading-5 text-slate-500">
+                    {checkingPreviousPredictions
+                      ? t.submit.checkingPreviousPredictions
+                      : t.submit.previousPredictionsHidden}
+                  </p>
+                )}
+                {shouldCheckPreviousPredictions && !checkingPreviousPredictions && upcomingMatches.length > 0 && availableMatches.length === 0 && (
+                  <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+                    {t.submit.allAvailablePredicted}
+                  </p>
+                )}
               </div>
 
               {locked && (

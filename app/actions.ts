@@ -7,6 +7,7 @@ import { scorePrediction } from "@/lib/scoring"
 import type { Lang, MatchComment, MatchReaction, ReactionType } from "@/lib/types"
 
 type SubmitResult = { ok: true } | { ok: false; error: string }
+type PredictedMatchIdsResult = { ok: true; matchIds: string[] } | { ok: false; error: string }
 type ReactionResult = { ok: true; reaction: MatchReaction } | { ok: false; error: string }
 type CommentResult = { ok: true; comment: MatchComment } | { ok: false; error: string }
 
@@ -165,6 +166,44 @@ export async function submitPrediction(input: {
   if (insertError) return { ok: false, error: m.generic }
 
   return { ok: true }
+}
+
+export async function getPredictedMatchIdsForEmployee(input: {
+  firstName: string
+  lastName: string
+}): Promise<PredictedMatchIdsResult> {
+  const firstName = input.firstName.trim()
+  const lastName = input.lastName.trim()
+
+  if (!firstName || !lastName) {
+    return { ok: true, matchIds: [] }
+  }
+
+  const supabase = await createClient()
+
+  const { data: existingEmployees, error: employeeSearchError } = await supabase
+    .from("employees")
+    .select("id")
+    .ilike("first_name", firstName)
+    .ilike("last_name", lastName)
+    .limit(1)
+
+  if (employeeSearchError) return { ok: false, error: "generic" }
+
+  const employeeId = existingEmployees?.[0]?.id
+  if (!employeeId) return { ok: true, matchIds: [] }
+
+  const { data: predictions, error: predictionSearchError } = await supabase
+    .from("predictions")
+    .select("match_id")
+    .eq("employee_id", employeeId)
+
+  if (predictionSearchError) return { ok: false, error: "generic" }
+
+  return {
+    ok: true,
+    matchIds: Array.from(new Set((predictions ?? []).map((prediction) => prediction.match_id as string))),
+  }
 }
 
 export async function saveMatchReaction(input: {

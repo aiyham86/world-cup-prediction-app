@@ -71,6 +71,9 @@ export const translations = {
       formLabel: "Prediction form",
       expectedScore: "Expected score",
       selectMatchFirst: "Select a match first to enter your score prediction.",
+      checkingPreviousPredictions: "Checking previous predictions...",
+      previousPredictionsHidden: "Matches you already predicted are hidden.",
+      allAvailablePredicted: "You have already submitted predictions for all available matches.",
       penaltyWinnerTitle: "Who advances after penalties?",
       penaltyWinnerRequired: "Please choose who advances after penalties.",
       acceptance: {
@@ -428,6 +431,9 @@ export const translations = {
       formLabel: "Tippformular",
       expectedScore: "Erwartetes Ergebnis",
       selectMatchFirst: "Wähle zuerst ein Spiel aus, um deinen Tipp einzugeben.",
+      checkingPreviousPredictions: "Vorherige Tipps werden geprüft...",
+      previousPredictionsHidden: "Spiele, die du bereits getippt hast, werden ausgeblendet.",
+      allAvailablePredicted: "Du hast bereits Tipps für alle verfügbaren Spiele abgegeben.",
       penaltyWinnerTitle: "Wer kommt nach dem Elfmeterschießen weiter?",
       penaltyWinnerRequired: "Bitte wähle aus, wer im Elfmeterschießen weiterkommt.",
       acceptance: {
