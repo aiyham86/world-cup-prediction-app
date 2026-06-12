@@ -97,9 +97,11 @@ export default async function LeaderboardPage() {
       (a, b) =>
         b.points - a.points ||
         b.exactScores - a.exactScores ||
-        b.correctOutcomes - a.correctOutcomes
+        b.correctOutcomes - a.correctOutcomes ||
+        a.name.localeCompare(b.name)
     )
 
+  let currentRank = 0
   for (let index = 0; index < rows.length; index += 1) {
     const previous = rows[index - 1]
     const current = rows[index]
@@ -109,7 +111,11 @@ export default async function LeaderboardPage() {
       previous.exactScores === current.exactScores &&
       previous.correctOutcomes === current.correctOutcomes
 
-    current.displayRank = tiedWithPrevious ? previous.displayRank : index + 1
+    if (!tiedWithPrevious) {
+      currentRank += 1
+    }
+
+    current.displayRank = currentRank
   }
 
   const hasRealLeader = rows.length > 0 && rows[0].points > 0
