@@ -41,3 +41,23 @@ export type Prediction = {
   created_at: string
   updated_at: string
 }
+
+export type ReactionType = "like" | "love" | "funny" | "surprised"
+
+export type MatchReaction = {
+  id: string
+  match_id: string
+  participant_name: string
+  reaction_type: ReactionType
+  created_at: string
+}
+
+export type MatchComment = {
+  id: string
+  match_id: string
+  participant_name: string
+  comment: string
+  parent_comment_id: string | null
+  is_hidden: boolean
+  created_at: string
+}

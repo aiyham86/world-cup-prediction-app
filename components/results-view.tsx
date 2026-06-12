@@ -4,9 +4,10 @@ import Image from "next/image"
 import { useEffect, useMemo, useState } from "react"
 import { CalendarDays, CircleDot, Search } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
+import { MatchTalk } from "@/components/match-talk"
 import { teamNames } from "@/lib/i18n"
 import { getDisplayMatchStatus, type DisplayMatchStatus } from "@/lib/match-status"
-import type { Match, Prediction } from "@/lib/types"
+import type { Match, MatchComment, MatchReaction, Prediction } from "@/lib/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -153,10 +154,14 @@ export function ResultsView({
   matches,
   totalEmployees,
   predictions,
+  reactions,
+  comments,
 }: {
   matches: Match[]
   totalEmployees: number
   predictions: Prediction[]
+  reactions: MatchReaction[]
+  comments: MatchComment[]
 }) {
   const { lang, t } = useLanguage()
   const [search, setSearch] = useState("")
@@ -203,6 +208,30 @@ export function ResultsView({
   }, [lang, matches])
 
   const selectedTeam = teamOptions.find((team) => team.en === teamFilter)
+
+  const reactionsByMatch = useMemo(() => {
+    const grouped = new Map<string, MatchReaction[]>()
+
+    for (const reaction of reactions) {
+      const list = grouped.get(reaction.match_id) ?? []
+      list.push(reaction)
+      grouped.set(reaction.match_id, list)
+    }
+
+    return grouped
+  }, [reactions])
+
+  const commentsByMatch = useMemo(() => {
+    const grouped = new Map<string, MatchComment[]>()
+
+    for (const comment of comments) {
+      const list = grouped.get(comment.match_id) ?? []
+      list.push(comment)
+      grouped.set(comment.match_id, list)
+    }
+
+    return grouped
+  }, [comments])
 
   const togglePredictionSummary = (matchId: string) => {
     setExpandedSummaryMatchIds((current) => {
@@ -534,6 +563,12 @@ export function ResultsView({
                             )}
                           </div>
                         )}
+
+                        <MatchTalk
+                          matchId={match.id}
+                          initialReactions={reactionsByMatch.get(match.id) ?? []}
+                          initialComments={commentsByMatch.get(match.id) ?? []}
+                        />
 
                         <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs font-medium text-slate-500">
                           <span>{t.common.matchNumber} #{match.match_number}</span>

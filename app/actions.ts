@@ -4,9 +4,11 @@ import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { hasMatchStarted } from "@/lib/match-status"
 import { scorePrediction } from "@/lib/scoring"
-import type { Lang } from "@/lib/types"
+import type { Lang, MatchComment, MatchReaction, ReactionType } from "@/lib/types"
 
 type SubmitResult = { ok: true } | { ok: false; error: string }
+type ReactionResult = { ok: true; reaction: MatchReaction } | { ok: false; error: string }
+type CommentResult = { ok: true; comment: MatchComment } | { ok: false; error: string }
 
 const messages = {
   en: {
@@ -24,6 +26,8 @@ const messages = {
     generic: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
   },
 }
+
+const reactionTypes = new Set<ReactionType>(["like", "love", "funny", "surprised"])
 
 async function isAdminAuthenticated() {
   const cookieStore = await cookies()
@@ -161,6 +165,82 @@ export async function submitPrediction(input: {
   if (insertError) return { ok: false, error: m.generic }
 
   return { ok: true }
+}
+
+export async function saveMatchReaction(input: {
+  matchId: string
+  participantName: string
+  reactionType: ReactionType
+}): Promise<ReactionResult> {
+  const participantName = input.participantName.trim()
+
+  if (!participantName || !reactionTypes.has(input.reactionType)) {
+    return { ok: false, error: "generic" }
+  }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("match_reactions")
+    .upsert(
+      {
+        match_id: input.matchId,
+        participant_name: participantName,
+        reaction_type: input.reactionType,
+      },
+      { onConflict: "match_id,participant_name" }
+    )
+    .select("*")
+    .single()
+
+  if (error || !data) return { ok: false, error: "generic" }
+
+  return { ok: true, reaction: data as MatchReaction }
+}
+
+export async function postMatchComment(input: {
+  matchId: string
+  participantName: string
+  comment: string
+  parentCommentId?: string | null
+}): Promise<CommentResult> {
+  const participantName = input.participantName.trim()
+  const comment = input.comment.trim()
+  const parentCommentId = input.parentCommentId ?? null
+
+  if (!participantName || !comment || comment.length > 300) {
+    return { ok: false, error: "generic" }
+  }
+
+  const supabase = await createClient()
+
+  if (parentCommentId) {
+    const { data: parentComment, error: parentError } = await supabase
+      .from("match_comments")
+      .select("id, match_id, parent_comment_id, is_hidden")
+      .eq("id", parentCommentId)
+      .eq("match_id", input.matchId)
+      .eq("is_hidden", false)
+      .single()
+
+    if (parentError || !parentComment || parentComment.parent_comment_id) {
+      return { ok: false, error: "generic" }
+    }
+  }
+
+  const { data, error } = await supabase
+    .from("match_comments")
+    .insert({
+      match_id: input.matchId,
+      participant_name: participantName,
+      comment,
+      parent_comment_id: parentCommentId,
+    })
+    .select("*")
+    .single()
+
+  if (error || !data) return { ok: false, error: "generic" }
+
+  return { ok: true, comment: data as MatchComment }
 }
 
 export async function saveMatchResult(input: {
