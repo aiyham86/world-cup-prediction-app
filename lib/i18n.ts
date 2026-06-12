@@ -178,6 +178,9 @@ export const translations = {
       allStages: "All stages",
       noMatches: "No matches found for the selected filters.",
       advancesOnPenalties: "advances on penalties",
+      predictionSummary: "Prediction summary",
+      noPrediction: "No prediction",
+      moreScorePredictions: (count: number) => `and ${count} more score predictions`,
     },
     admin: {
       title: "Admin Results",
@@ -506,6 +509,9 @@ export const translations = {
       allStages: "Alle Phasen",
       noMatches: "Keine Spiele für die ausgewählten Filter gefunden.",
       advancesOnPenalties: "kommt im Elfmeterschießen weiter",
+      predictionSummary: "Tippübersicht",
+      noPrediction: "Kein Tipp",
+      moreScorePredictions: (count: number) => `und ${count} weitere Tipps`,
     },
     admin: {
       title: "Ergebnisse verwalten",

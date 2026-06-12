@@ -6,7 +6,7 @@ import { CalendarDays, CircleDot, Search } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
 import { teamNames } from "@/lib/i18n"
 import { getDisplayMatchStatus, type DisplayMatchStatus } from "@/lib/match-status"
-import type { Match } from "@/lib/types"
+import type { Match, Prediction } from "@/lib/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -80,6 +80,19 @@ type TeamOption = {
   flagCode: string
 }
 
+type PredictionScoreGroup = {
+  key: string
+  label: string
+  count: number
+  homeScore: number
+  awayScore: number
+}
+
+type PredictionSummary = {
+  groups: PredictionScoreGroup[]
+  noPredictionCount: number
+}
+
 function flagSrc(teamName: string) {
   const code = TEAM_FLAG_CODES[teamName]
   return code ? `/flags/${code}.svg` : null
@@ -136,7 +149,15 @@ function formatDateHeading(dateStr: string, lang: "en" | "de") {
   }).format(date)
 }
 
-export function ResultsView({ matches }: { matches: Match[] }) {
+export function ResultsView({
+  matches,
+  totalEmployees,
+  predictions,
+}: {
+  matches: Match[]
+  totalEmployees: number
+  predictions: Prediction[]
+}) {
   const { lang, t } = useLanguage()
   const [search, setSearch] = useState("")
   const [teamFilter, setTeamFilter] = useState("all")
@@ -181,6 +202,51 @@ export function ResultsView({ matches }: { matches: Match[] }) {
   }, [lang, matches])
 
   const selectedTeam = teamOptions.find((team) => team.en === teamFilter)
+
+  const predictionSummaryByMatch = useMemo(() => {
+    const summaries = new Map<string, { totalPredicted: number; groups: Map<string, PredictionScoreGroup> }>()
+
+    for (const match of matches) {
+      summaries.set(match.id, {
+        totalPredicted: 0,
+        groups: new Map<string, PredictionScoreGroup>(),
+      })
+    }
+
+    for (const prediction of predictions) {
+      const summary = summaries.get(prediction.match_id) ?? {
+        totalPredicted: 0,
+        groups: new Map<string, PredictionScoreGroup>(),
+      }
+      const key = `${prediction.predicted_home_score}-${prediction.predicted_away_score}`
+      const group =
+        summary.groups.get(key) ??
+        {
+          key,
+          label: key,
+          count: 0,
+          homeScore: prediction.predicted_home_score,
+          awayScore: prediction.predicted_away_score,
+        }
+
+      group.count += 1
+      summary.totalPredicted += 1
+      summary.groups.set(key, group)
+      summaries.set(prediction.match_id, summary)
+    }
+
+    return new Map<string, PredictionSummary>(
+      Array.from(summaries.entries()).map(([matchId, summary]) => [
+        matchId,
+        {
+          groups: Array.from(summary.groups.values()).sort(
+            (a, b) => b.count - a.count || a.homeScore - b.homeScore || a.awayScore - b.awayScore
+          ),
+          noPredictionCount: Math.max(totalEmployees - summary.totalPredicted, 0),
+        },
+      ])
+    )
+  }, [matches, predictions, totalEmployees])
 
   const groupedMatches = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -374,6 +440,10 @@ export function ResultsView({ matches }: { matches: Match[] }) {
                     match.home_score === match.away_score &&
                     penaltyWinner
                   const displayStatus = getDisplayMatchStatus(match, now)
+                  const predictionSummary = predictionSummaryByMatch.get(match.id)
+                  const showPredictionSummary = displayStatus !== "upcoming" && predictionSummary
+                  const visibleScoreGroups = predictionSummary?.groups.slice(0, 5) ?? []
+                  const hiddenScoreGroupCount = Math.max((predictionSummary?.groups.length ?? 0) - 5, 0)
 
                   return (
                     <Card key={match.id} className="rounded-2xl border-slate-200 bg-white shadow-sm">
@@ -400,6 +470,34 @@ export function ResultsView({ matches }: { matches: Match[] }) {
                             <span className="truncate text-sm font-black text-slate-950">{away}</span>
                           </div>
                         </div>
+
+                        {showPredictionSummary && (
+                          <div className="space-y-2 border-t border-slate-100 pt-3">
+                            <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">
+                              {t.results.predictionSummary}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {visibleScoreGroups.map((group) => (
+                                <span
+                                  key={group.key}
+                                  className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200"
+                                >
+                                  {group.label} &middot; {group.count}
+                                </span>
+                              ))}
+                              {predictionSummary.noPredictionCount > 0 && (
+                                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 ring-1 ring-emerald-100">
+                                  {t.results.noPrediction} &middot; {predictionSummary.noPredictionCount}
+                                </span>
+                              )}
+                            </div>
+                            {hiddenScoreGroupCount > 0 && (
+                              <p className="text-xs font-medium text-slate-500">
+                                {t.results.moreScorePredictions(hiddenScoreGroupCount)}
+                              </p>
+                            )}
+                          </div>
+                        )}
 
                         <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs font-medium text-slate-500">
                           <span>{t.common.matchNumber} #{match.match_number}</span>
