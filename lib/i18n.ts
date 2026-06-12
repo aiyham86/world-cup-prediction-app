@@ -180,7 +180,8 @@ export const translations = {
       advancesOnPenalties: "advances on penalties",
       predictionSummary: "Prediction summary",
       noPrediction: "No prediction",
-      moreScorePredictions: (count: number) => `and ${count} more score predictions`,
+      moreScorePredictions: (count: number) => `Show ${count} more score predictions`,
+      fewerScorePredictions: "Show fewer",
     },
     admin: {
       title: "Admin Results",
@@ -511,7 +512,8 @@ export const translations = {
       advancesOnPenalties: "kommt im Elfmeterschießen weiter",
       predictionSummary: "Tippübersicht",
       noPrediction: "Kein Tipp",
-      moreScorePredictions: (count: number) => `und ${count} weitere Tipps`,
+      moreScorePredictions: (count: number) => `${count} weitere Tipps anzeigen`,
+      fewerScorePredictions: "Weniger anzeigen",
     },
     admin: {
       title: "Ergebnisse verwalten",

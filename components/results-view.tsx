@@ -164,6 +164,7 @@ export function ResultsView({
   const [statusFilter, setStatusFilter] = useState<"all" | DisplayMatchStatus>("all")
   const [stageFilter, setStageFilter] = useState<"all" | (typeof STAGE_FILTERS)[number]>("all")
   const [now, setNow] = useState(() => new Date())
+  const [expandedSummaryMatchIds, setExpandedSummaryMatchIds] = useState<Set<string>>(() => new Set())
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 60_000)
@@ -202,6 +203,20 @@ export function ResultsView({
   }, [lang, matches])
 
   const selectedTeam = teamOptions.find((team) => team.en === teamFilter)
+
+  const togglePredictionSummary = (matchId: string) => {
+    setExpandedSummaryMatchIds((current) => {
+      const next = new Set(current)
+
+      if (next.has(matchId)) {
+        next.delete(matchId)
+      } else {
+        next.add(matchId)
+      }
+
+      return next
+    })
+  }
 
   const predictionSummaryByMatch = useMemo(() => {
     const summaries = new Map<string, { totalPredicted: number; groups: Map<string, PredictionScoreGroup> }>()
@@ -442,8 +457,19 @@ export function ResultsView({
                   const displayStatus = getDisplayMatchStatus(match, now)
                   const predictionSummary = predictionSummaryByMatch.get(match.id)
                   const showPredictionSummary = displayStatus !== "upcoming" && predictionSummary
-                  const visibleScoreGroups = predictionSummary?.groups.slice(0, 5) ?? []
-                  const hiddenScoreGroupCount = Math.max((predictionSummary?.groups.length ?? 0) - 5, 0)
+                  const correctScoreKey = hasScore ? `${match.home_score}-${match.away_score}` : null
+                  const correctScoreGroup = correctScoreKey
+                    ? predictionSummary?.groups.find((group) => group.key === correctScoreKey)
+                    : null
+                  const sortedScoreGroups = predictionSummary
+                    ? [
+                        ...(correctScoreGroup ? [correctScoreGroup] : []),
+                        ...predictionSummary.groups.filter((group) => group.key !== correctScoreKey),
+                      ]
+                    : []
+                  const summaryExpanded = expandedSummaryMatchIds.has(match.id)
+                  const visibleScoreGroups = summaryExpanded ? sortedScoreGroups : sortedScoreGroups.slice(0, 5)
+                  const hiddenScoreGroupCount = Math.max(sortedScoreGroups.length - visibleScoreGroups.length, 0)
 
                   return (
                     <Card key={match.id} className="rounded-2xl border-slate-200 bg-white shadow-sm">
@@ -480,21 +506,31 @@ export function ResultsView({
                               {visibleScoreGroups.map((group) => (
                                 <span
                                   key={group.key}
-                                  className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200"
+                                  className={
+                                    group.key === correctScoreKey
+                                      ? "rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-900 ring-1 ring-emerald-300"
+                                      : "rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200"
+                                  }
                                 >
                                   {group.label} &middot; {group.count}
                                 </span>
                               ))}
                               {predictionSummary.noPredictionCount > 0 && (
-                                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 ring-1 ring-emerald-100">
+                                <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-800 ring-1 ring-rose-200">
                                   {t.results.noPrediction} &middot; {predictionSummary.noPredictionCount}
                                 </span>
                               )}
                             </div>
-                            {hiddenScoreGroupCount > 0 && (
-                              <p className="text-xs font-medium text-slate-500">
-                                {t.results.moreScorePredictions(hiddenScoreGroupCount)}
-                              </p>
+                            {(hiddenScoreGroupCount > 0 || summaryExpanded) && (
+                              <button
+                                type="button"
+                                onClick={() => togglePredictionSummary(match.id)}
+                                className="text-xs font-bold text-emerald-700 transition hover:text-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                              >
+                                {summaryExpanded
+                                  ? t.results.fewerScorePredictions
+                                  : t.results.moreScorePredictions(hiddenScoreGroupCount)}
+                              </button>
                             )}
                           </div>
                         )}
