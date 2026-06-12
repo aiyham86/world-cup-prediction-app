@@ -4,17 +4,44 @@ import { LeaderboardView, type LeaderboardRow } from "@/components/leaderboard-v
 
 export const dynamic = "force-dynamic"
 
+async function fetchAllRows<T>(
+  queryFactory: (from: number, to: number) => Promise<{ data: T[] | null; error: unknown }>
+): Promise<T[]> {
+  const pageSize = 1000
+  let from = 0
+  const all: T[] = []
+
+  while (true) {
+    const to = from + pageSize - 1
+    const { data, error } = await queryFactory(from, to)
+
+    if (error) throw error
+
+    const batch = data ?? []
+    all.push(...batch)
+
+    if (batch.length < pageSize) break
+    from += pageSize
+  }
+
+  return all
+}
+
 export default async function LeaderboardPage() {
   const supabase = await createClient()
 
-  const [{ data: employeesData }, { data: predictionsData }, { data: matchesData }] = await Promise.all([
-    supabase.from("employees").select("*"),
-    supabase.from("predictions").select("*"),
+  const [employeesData, predictionsData, { data: matchesData }] = await Promise.all([
+    fetchAllRows<Employee>(async (from, to) =>
+      supabase.from("employees").select("*").order("created_at", { ascending: true }).range(from, to)
+    ),
+    fetchAllRows<Prediction>(async (from, to) =>
+      supabase.from("predictions").select("*").order("created_at", { ascending: true }).range(from, to)
+    ),
     supabase.from("matches").select("*"),
   ])
 
-  const employees = (employeesData ?? []) as Employee[]
-  const predictions = (predictionsData ?? []) as Prediction[]
+  const employees = employeesData
+  const predictions = predictionsData
   const matches = (matchesData ?? []) as Match[]
   const matchById = new Map(matches.map((match) => [match.id, match]))
 
