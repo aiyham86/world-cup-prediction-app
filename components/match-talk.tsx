@@ -44,6 +44,13 @@ export function MatchTalk({
   const [comments, setComments] = useState(initialComments)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const commentCount = comments.length
+  const commentsToggleLabel =
+    commentCount === 0
+      ? t.matchTalk.noComments
+      : commentCount === 1
+        ? t.matchTalk.commentCountSingular
+        : t.matchTalk.commentCountPlural(commentCount)
 
   const reactionCounts = useMemo(() => {
     const counts = new Map<ReactionType, number>()
@@ -170,7 +177,7 @@ export function MatchTalk({
           onClick={() => setCommentsOpen((open) => !open)}
           className="text-xs font-bold text-emerald-700 transition hover:text-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
         >
-          {commentsOpen ? t.matchTalk.hideComments : t.matchTalk.showComments}
+          {commentsOpen ? `${t.matchTalk.hideComments} · ${commentsToggleLabel}` : commentsToggleLabel}
         </button>
       </div>
 
