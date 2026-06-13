@@ -24,15 +24,15 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#07111f]/90 text-white backdrop-blur-xl">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20">
-            <Trophy className="h-6 w-6" />
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-4 py-2.5 sm:gap-4 sm:px-6 sm:py-4">
+        <Link href="/" className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3" onClick={() => setOpen(false)}>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 sm:h-11 sm:w-11">
+            <Trophy className="h-5 w-5 sm:h-6 sm:w-6" />
           </span>
 
-          <span className="flex flex-col leading-tight">
-            <span className="text-sm font-bold tracking-wide sm:text-base">{t.appName}</span>
-            <span className="text-xs text-white/55">{t.home.subtitle}</span>
+          <span className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate text-sm font-bold tracking-wide sm:text-base">{t.appName}</span>
+            <span className="hidden text-xs text-white/55 md:block">{t.home.subtitle}</span>
           </span>
         </Link>
 

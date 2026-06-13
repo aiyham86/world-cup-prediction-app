@@ -321,8 +321,8 @@ export function LeaderboardView({
   ]
 
   return (
-    <div className="relative left-1/2 w-[calc(100vw-2rem)] max-w-7xl -translate-x-1/2 space-y-8 sm:w-[calc(100vw-3rem)] lg:w-[calc(100vw-4rem)]">
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#07111f] px-6 py-10 text-white shadow-2xl shadow-slate-950/10 sm:px-10 lg:px-12">
+    <div className="relative left-1/2 w-[calc(100vw-2rem)] max-w-7xl -translate-x-1/2 space-y-5 sm:w-[calc(100vw-3rem)] sm:space-y-8 lg:w-[calc(100vw-4rem)]">
+      <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#07111f] px-4 py-6 text-white shadow-2xl shadow-slate-950/10 sm:rounded-[2rem] sm:px-10 sm:py-10 lg:px-12">
         <Image
           src="/images/leaderboard.jpg"
           alt=""
@@ -334,25 +334,25 @@ export function LeaderboardView({
         <div className="absolute inset-0 bg-gradient-to-r from-[#07111f] via-[#07111f]/90 to-[#07111f]/65" />
         <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl" />
 
-        <div className="relative grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <div className="relative grid gap-5 sm:gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300 sm:mb-5 sm:px-4 sm:py-2 sm:tracking-[0.2em]">
               <Trophy className="h-4 w-4" />
               {t.common.worldCup}
             </div>
 
-            <h1 className="text-balance text-4xl font-black tracking-tight sm:text-5xl">{t.leaderboard.title}</h1>
+            <h1 className="text-balance text-3xl font-black tracking-tight sm:text-5xl">{t.leaderboard.title}</h1>
 
-            <p className="mt-5 max-w-2xl text-base leading-8 text-white/70">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70 sm:mt-5 sm:text-base sm:leading-8">
               {t.leaderboard.subtitle}
             </p>
           </div>
 
-          <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-5 backdrop-blur">
-            <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">
+          <div className="rounded-2xl border border-white/10 bg-white/10 p-3 backdrop-blur sm:rounded-[1.5rem] sm:p-5">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-emerald-300 sm:mb-4 sm:tracking-[0.18em]">
               {t.leaderboard.prizePlaces}
             </p>
-            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            <div className="grid gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-1">
               {placeSummaries.map((place) => {
                 const meta = placeMeta(place.rank)
                 const Icon = meta.Icon ?? Trophy
@@ -360,18 +360,18 @@ export function LeaderboardView({
                 return (
                   <div
                     key={place.rank}
-                    className={`relative overflow-hidden rounded-2xl border px-4 py-3 shadow-sm backdrop-blur-md ${meta.heroRowClass}`}
+                    className={`relative overflow-hidden rounded-xl border px-3 py-2.5 shadow-sm backdrop-blur-md sm:rounded-2xl sm:px-4 sm:py-3 ${meta.heroRowClass}`}
                   >
                     <span className={`absolute inset-y-3 left-0 w-0.5 rounded-full ${meta.heroAccentClass}`} />
-                    <div className="flex items-start gap-3">
-                      <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/5 ring-1 ${meta.heroIconClass}`}>
-                        <Icon className="h-4 w-4" />
+                    <div className="flex items-start gap-2.5 sm:gap-3">
+                      <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/5 ring-1 sm:h-8 sm:w-8 ${meta.heroIconClass}`}>
+                        <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </span>
                       <div className="min-w-0">
                         <p className="text-xs font-black uppercase tracking-[0.14em] text-white/55">
                           {place.label}
                         </p>
-                        <p className="mt-1 line-clamp-2 break-words text-sm font-black text-white">
+                        <p className="mt-0.5 line-clamp-2 break-words text-sm font-black text-white sm:mt-1">
                           {place.value}
                         </p>
                       </div>
@@ -384,16 +384,16 @@ export function LeaderboardView({
         </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="grid grid-cols-3 gap-2 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
         {stats.map((s) => (
           <Card key={s.label} className="rounded-2xl border-slate-200 bg-white shadow-sm">
-            <CardContent className="flex items-center gap-4 p-5">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
-                <s.icon className="h-5 w-5" />
+            <CardContent className="flex min-h-24 flex-col items-start gap-2 p-3 sm:min-h-0 sm:flex-row sm:items-center sm:gap-4 sm:p-5">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100 sm:h-11 sm:w-11">
+                <s.icon className="h-4 w-4 sm:h-5 sm:w-5" />
               </span>
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{s.label}</p>
-                <p className="mt-1 truncate text-lg font-black text-slate-950">{s.value}</p>
+                <p className="text-[0.65rem] font-bold uppercase leading-4 tracking-[0.1em] text-slate-500 sm:text-xs sm:tracking-[0.14em]">{s.label}</p>
+                <p className="mt-0.5 truncate text-base font-black text-slate-950 sm:mt-1 sm:text-lg">{s.value}</p>
               </div>
             </CardContent>
           </Card>
@@ -402,17 +402,17 @@ export function LeaderboardView({
 
       <Card className="overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
         <CardContent className="p-0">
-          <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-slate-50 px-6 py-5">
+          <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-slate-50 px-4 py-4 sm:px-6 sm:py-5">
             <div>
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-600">{t.leaderboard.currentRanking}</p>
-              <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">{t.leaderboard.title}</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-600 sm:text-sm sm:tracking-[0.18em]">{t.leaderboard.currentRanking}</p>
+              <h2 className="mt-1 text-xl font-black tracking-tight text-slate-950 sm:mt-2 sm:text-2xl">{t.leaderboard.title}</h2>
             </div>
             <div className="hidden h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 sm:flex">
               <Medal className="h-5 w-5" />
             </div>
           </div>
 
-          <div className="grid gap-4 border-b border-slate-200 bg-white px-4 py-4 sm:px-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+          <div className="grid gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:gap-4 sm:px-5 sm:py-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
             <div className="grid gap-3 sm:max-w-xs">
               <label htmlFor="leaderboardDepartment" className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                 {t.leaderboard.departmentFilterLabel}
@@ -440,7 +440,7 @@ export function LeaderboardView({
               >
                 {t.leaderboard.officialRanking}
               </Button>
-              <p className="max-w-2xl text-sm leading-6 text-slate-500 lg:text-right">
+              <p className="hidden max-w-2xl text-sm leading-6 text-slate-500 sm:block lg:text-right">
                 {t.leaderboard.sortHelper}
               </p>
             </div>

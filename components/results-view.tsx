@@ -335,8 +335,8 @@ export function ResultsView({
   }, [matches, now, search, stageFilter, statusFilter, teamFilter])
 
   return (
-    <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#07111f] px-6 py-10 text-white shadow-2xl shadow-slate-950/10 sm:px-10 lg:px-12">
+    <div className="space-y-6 sm:space-y-8">
+      <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#07111f] px-4 py-6 text-white shadow-2xl shadow-slate-950/10 sm:rounded-[2rem] sm:px-10 sm:py-10 lg:px-12">
         <Image
           src="/images/match-results.jpg"
           alt=""
@@ -349,20 +349,20 @@ export function ResultsView({
         <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl" />
 
         <div className="relative max-w-3xl">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300 sm:mb-5 sm:px-4 sm:py-2 sm:tracking-[0.2em]">
             <CalendarDays className="h-4 w-4" />
             {t.common.worldCup}
           </div>
 
-          <h1 className="text-balance text-4xl font-black tracking-tight sm:text-5xl">{t.results.title}</h1>
-          <p className="mt-5 max-w-2xl text-base leading-8 text-white/70">
+          <h1 className="text-balance text-3xl font-black tracking-tight sm:text-5xl">{t.results.title}</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70 sm:mt-5 sm:text-base sm:leading-8">
             {t.results.subtitle}
           </p>
         </div>
       </section>
 
       <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
-        <CardContent className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_180px_220px]">
+        <CardContent className="grid gap-3 p-4 sm:gap-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_180px_220px]">
           <label className="flex flex-col gap-2">
             <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{t.results.team}</span>
             <Select value={teamFilter} onValueChange={(value) => setTeamFilter(value ?? "all")}>
@@ -443,20 +443,20 @@ export function ResultsView({
 
       {groupedMatches.length === 0 ? (
         <Card className="rounded-2xl border-dashed border-slate-300 bg-white shadow-sm">
-          <CardContent className="py-12 text-center text-sm text-slate-500">
+          <CardContent className="py-8 text-center text-sm text-slate-500 sm:py-12">
             {t.results.noMatches}
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           {groupedMatches.map((group) => (
-            <section key={group.date} className="space-y-4">
+            <section key={group.date} className="space-y-3 sm:space-y-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
-                  <CalendarDays className="h-5 w-5" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100 sm:h-10 sm:w-10">
+                  <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black tracking-tight text-slate-950">
+                  <h2 className="text-lg font-black tracking-tight text-slate-950 sm:text-xl">
                     {formatDateHeading(group.date, lang)}
                   </h2>
                   <p className="text-sm text-slate-500">
@@ -465,7 +465,7 @@ export function ResultsView({
                 </div>
               </div>
 
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
                 {group.matches.map((match) => {
                   const { home, away } = teamNames(match, lang)
                   const stage = lang === "en" ? match.stage_en : match.stage_de
@@ -502,7 +502,7 @@ export function ResultsView({
 
                   return (
                     <Card key={match.id} className="rounded-2xl border-slate-200 bg-white shadow-sm">
-                      <CardContent className="space-y-4 p-5">
+                      <CardContent className="space-y-3 p-4 sm:space-y-4 sm:p-5">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
                             {stage}
@@ -510,13 +510,13 @@ export function ResultsView({
                           <StatusBadge status={displayStatus} />
                         </div>
 
-                        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+                        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-3">
                           <div className="flex min-w-0 items-center justify-end gap-2 text-right">
                             <span className="truncate text-sm font-black text-slate-950">{home}</span>
                             <TeamFlag teamName={match.home_team_en} />
                           </div>
 
-                          <span className="min-w-20 rounded-full bg-slate-100 px-4 py-2 text-center text-base font-black text-slate-950 ring-1 ring-slate-200">
+                          <span className="min-w-16 rounded-full bg-slate-100 px-3 py-1.5 text-center text-sm font-black text-slate-950 ring-1 ring-slate-200 sm:min-w-20 sm:px-4 sm:py-2 sm:text-base">
                             {hasScore ? `${match.home_score} - ${match.away_score}` : "-"}
                           </span>
 
@@ -537,15 +537,15 @@ export function ResultsView({
                                   key={group.key}
                                   className={
                                     group.key === correctScoreKey
-                                      ? "rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-900 ring-1 ring-emerald-300"
-                                      : "rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200"
+                                      ? "rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-black text-emerald-900 ring-1 ring-emerald-300 sm:px-3"
+                                      : "rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200 sm:px-3"
                                   }
                                 >
                                   {group.label} &middot; {group.count}
                                 </span>
                               ))}
                               {predictionSummary.noPredictionCount > 0 && (
-                                <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-800 ring-1 ring-rose-200">
+                                <span className="rounded-full bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-800 ring-1 ring-rose-200 sm:px-3">
                                   {t.results.noPrediction} &middot; {predictionSummary.noPredictionCount}
                                 </span>
                               )}
@@ -576,7 +576,7 @@ export function ResultsView({
                         </div>
 
                         {showPenaltyWinner && (
-                          <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+                          <div className="rounded-xl bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 sm:px-4 sm:py-3">
                             {penaltyWinner} {t.results.advancesOnPenalties}
                           </div>
                         )}

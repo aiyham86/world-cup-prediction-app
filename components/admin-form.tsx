@@ -217,8 +217,8 @@ export function AdminForm({ matches }: { matches: Match[] }) {
     : t.admin.teamTwoScore
 
   return (
-    <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#07111f] px-6 py-10 text-white shadow-2xl shadow-slate-950/10 sm:px-10 lg:px-12">
+    <div className="space-y-6 sm:space-y-8">
+      <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#07111f] px-4 py-6 text-white shadow-2xl shadow-slate-950/10 sm:rounded-[2rem] sm:px-10 sm:py-10 lg:px-12">
         <Image
           src="/images/match-results.jpg"
           alt=""
@@ -230,15 +230,15 @@ export function AdminForm({ matches }: { matches: Match[] }) {
         <div className="absolute inset-0 bg-gradient-to-r from-[#07111f] via-[#07111f]/90 to-[#07111f]/65" />
         <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl" />
 
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+        <div className="relative flex flex-col gap-5 sm:gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300 sm:mb-5 sm:px-4 sm:py-2 sm:tracking-[0.2em]">
               <ShieldCheck className="h-4 w-4" />
               {t.admin.area}
             </div>
 
-            <h1 className="text-balance text-4xl font-black tracking-tight sm:text-5xl">{t.admin.title}</h1>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-white/70">
+            <h1 className="text-balance text-3xl font-black tracking-tight sm:text-5xl">{t.admin.title}</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70 sm:mt-5 sm:text-base sm:leading-8">
               {t.admin.subtitle}
             </p>
           </div>
@@ -256,25 +256,25 @@ export function AdminForm({ matches }: { matches: Match[] }) {
         </div>
       </section>
 
-      <div className="grid gap-8 lg:grid-cols-[0.42fr_0.58fr]">
+      <div className="grid gap-5 sm:gap-8 lg:grid-cols-[0.42fr_0.58fr]">
         <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
-          <CardContent className="p-6">
-            <div className="mb-5 flex items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
-                <Trophy className="h-5 w-5" />
+          <CardContent className="p-4 sm:p-6">
+            <div className="mb-4 flex items-center gap-3 sm:mb-5">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100 sm:h-11 sm:w-11">
+                <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
               </span>
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-600">{t.admin.selectedMatch}</p>
-                <h2 className="text-xl font-black tracking-tight text-slate-950">{t.admin.preview}</h2>
+                <h2 className="text-lg font-black tracking-tight text-slate-950 sm:text-xl">{t.admin.preview}</h2>
               </div>
             </div>
 
             {!selectedMatch || !selectedNames ? (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm text-slate-500 sm:p-6">
                 {t.admin.selectMatchPreview}
               </div>
             ) : (
-              <div className="space-y-5">
+              <div className="space-y-4 sm:space-y-5">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
                     {selectedStage}
@@ -287,14 +287,14 @@ export function AdminForm({ matches }: { matches: Match[] }) {
                   </span>
                 </div>
 
-                <div className="rounded-2xl bg-slate-50 p-4">
+                <div className="rounded-2xl bg-slate-50 p-3 sm:p-4">
                   <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
                     <CalendarDays className="h-4 w-4" />
                     {formatMatchDate(selectedMatch.match_date, lang)}
                     {selectedMatch.match_time ? `, ${selectedMatch.match_time}` : ""}
                   </div>
 
-                  <div className="mt-5 space-y-4">
+                  <div className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-3">
                         <TeamFlag teamName={selectedMatch.home_team_en} />
@@ -317,7 +317,7 @@ export function AdminForm({ matches }: { matches: Match[] }) {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
+                <div className="rounded-2xl border border-slate-200 bg-white p-3 text-sm text-slate-600 sm:p-4">
                   <span className="font-bold text-slate-950">{t.admin.currentResult}: </span>
                   {selectedHasScore ? `${selectedMatch.home_score} : ${selectedMatch.away_score}` : t.admin.noResultYet}
                 </div>
@@ -327,13 +327,13 @@ export function AdminForm({ matches }: { matches: Match[] }) {
         </Card>
 
         <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
-          <CardContent className="p-6">
-            <div className="mb-5">
+          <CardContent className="p-4 sm:p-6">
+            <div className="mb-4 sm:mb-5">
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-600">{t.admin.resultUpdate}</p>
-              <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">{t.appName}</h2>
+              <h2 className="mt-1 text-xl font-black tracking-tight text-slate-950 sm:mt-2 sm:text-2xl">{t.appName}</h2>
             </div>
 
-            <form onSubmit={handleSubmit} className="grid gap-6">
+            <form onSubmit={handleSubmit} className="grid gap-4 sm:gap-6">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="adminMatch">{t.admin.selectMatch}</Label>
                 <Select value={matchId} onValueChange={(value) => setMatchId(value ?? "")}>
@@ -352,7 +352,7 @@ export function AdminForm({ matches }: { matches: Match[] }) {
                 </Select>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="adminHome">{homeScoreLabel}</Label>
                   <Input
@@ -365,7 +365,7 @@ export function AdminForm({ matches }: { matches: Match[] }) {
                       setHomeScore(e.target.value)
                       setPenaltyWinner(null)
                     }}
-                    className="h-14 text-center text-2xl font-black"
+                    className="h-12 text-center text-xl font-black sm:h-14 sm:text-2xl"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
@@ -380,7 +380,7 @@ export function AdminForm({ matches }: { matches: Match[] }) {
                       setAwayScore(e.target.value)
                       setPenaltyWinner(null)
                     }}
-                    className="h-14 text-center text-2xl font-black"
+                    className="h-12 text-center text-xl font-black sm:h-14 sm:text-2xl"
                   />
                 </div>
               </div>
@@ -417,7 +417,7 @@ export function AdminForm({ matches }: { matches: Match[] }) {
                         key={team.value}
                         type="button"
                         onClick={() => setPenaltyWinner(team.value)}
-                        className={`flex items-center gap-3 rounded-2xl border bg-white p-4 text-left text-sm font-black transition ${
+                        className={`flex items-center gap-3 rounded-xl border bg-white p-3 text-left text-sm font-black transition sm:rounded-2xl sm:p-4 ${
                           penaltyWinner === team.value
                             ? "border-emerald-500 text-emerald-700 ring-2 ring-emerald-100"
                             : "border-slate-200 text-slate-950 hover:border-emerald-300"
@@ -431,7 +431,7 @@ export function AdminForm({ matches }: { matches: Match[] }) {
                 </div>
               )}
 
-              <div className="flex gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800">
+              <div className="flex gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm leading-6 text-emerald-800 sm:p-4">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
                 <p>{t.admin.recalculateInfo}</p>
               </div>
