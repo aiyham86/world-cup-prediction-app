@@ -55,6 +55,12 @@ type SortState = {
   direction: SortDirection
 } | null
 
+type PlaceSummary = {
+  rank: 1 | 2 | 3
+  label: string
+  value: string
+}
+
 const TEAM_FLAG_CODES: Record<string, string> = {
   Mexico: "mx",
   "South Africa": "za",
@@ -160,6 +166,50 @@ function pointsExplanationKey(prediction: LeaderboardPrediction) {
   return "noPoints"
 }
 
+function placeMeta(rank: number) {
+  if (rank === 1) {
+    return {
+      Icon: Crown,
+      badgeClass: "bg-amber-100 text-amber-800 ring-amber-200",
+      iconClass: "text-amber-500",
+      heroRowClass: "border-white/10 bg-slate-950/35 shadow-amber-950/10",
+      heroAccentClass: "bg-amber-400",
+      heroIconClass: "text-amber-300 ring-amber-300/20",
+    }
+  }
+
+  if (rank === 2) {
+    return {
+      Icon: Medal,
+      badgeClass: "bg-slate-100 text-slate-700 ring-slate-300",
+      iconClass: "text-slate-400",
+      heroRowClass: "border-white/10 bg-slate-950/35 shadow-slate-950/10",
+      heroAccentClass: "bg-slate-300",
+      heroIconClass: "text-slate-200 ring-slate-200/20",
+    }
+  }
+
+  if (rank === 3) {
+    return {
+      Icon: Medal,
+      badgeClass: "bg-orange-100 text-orange-900 ring-orange-200",
+      iconClass: "text-orange-600",
+      heroRowClass: "border-white/10 bg-slate-950/35 shadow-orange-950/10",
+      heroAccentClass: "bg-orange-400",
+      heroIconClass: "text-orange-300 ring-orange-300/20",
+    }
+  }
+
+  return {
+    Icon: null,
+    badgeClass: "bg-slate-100 text-slate-600 ring-slate-200",
+    iconClass: "",
+    heroRowClass: "border-white/10 bg-slate-950/35 shadow-slate-950/10",
+    heroAccentClass: "bg-slate-400",
+    heroIconClass: "text-slate-300 ring-slate-300/20",
+  }
+}
+
 export function LeaderboardView({
   rows,
   totalPredictions,
@@ -179,19 +229,27 @@ export function LeaderboardView({
   const departmentLabel = (dept: string) =>
     t.departments[dept as keyof typeof t.departments] ?? dept
   const collator = useMemo(() => new Intl.Collator(lang), [lang])
-  const topLeaderRows = rows.filter((row) => row.displayRank === 1 && row.points > 0)
-  const leaderSummary =
-    topLeaderRows.length === 0
-      ? { label: t.leaderboard.currentLeader, value: t.leaderboard.none }
-      : topLeaderRows.length === 1
-        ? { label: t.leaderboard.currentLeader, value: topLeaderRows[0].name }
-        : {
-            label: t.leaderboard.currentLeaders,
-            value:
-              topLeaderRows.length <= 3
-                ? topLeaderRows.map((row) => row.name).join(", ")
-                : `${topLeaderRows.length} ${t.leaderboard.playersTied}`,
-          }
+
+  const formatPlaceNames = (placeRows: LeaderboardRow[]) => {
+    if (placeRows.length === 0) return t.leaderboard.none
+    if (placeRows.length <= 2) return placeRows.map((row) => row.name).join(", ")
+    return `${placeRows.length} ${t.leaderboard.playersTied}`
+  }
+
+  const placeSummaries: PlaceSummary[] = [1, 2, 3].map((rank) => {
+    const label =
+      rank === 1
+        ? t.leaderboard.firstPlace
+        : rank === 2
+          ? t.leaderboard.secondPlace
+          : t.leaderboard.thirdPlace
+
+    return {
+      rank: rank as 1 | 2 | 3,
+      label,
+      value: formatPlaceNames(rows.filter((row) => row.displayRank === rank && row.points > 0)),
+    }
+  })
 
   const departmentOptions = useMemo(
     () =>
@@ -253,7 +311,6 @@ export function LeaderboardView({
   const alignSortableHeadClass = `${sortableHeadClass} justify-end`
 
   const stats = [
-    { icon: Trophy, label: leaderSummary.label, value: leaderSummary.value, wrapValue: true },
     { icon: Users, label: t.leaderboard.totalPlayers, value: String(rows.length) },
     { icon: ListChecks, label: t.leaderboard.totalPredictions, value: String(totalPredictions) },
     {
@@ -292,31 +349,42 @@ export function LeaderboardView({
           </div>
 
           <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-5 backdrop-blur">
-            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">
-                  {leaderSummary.label}
-                </p>
-                <p className="mt-2 line-clamp-2 break-words text-lg font-black">{leaderSummary.value}</p>
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">
-                  {t.leaderboard.totalPlayers}
-                </p>
-                <p className="mt-2 text-lg font-black">{rows.length}</p>
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">
-                  {t.leaderboard.totalPredictions}
-                </p>
-                <p className="mt-2 text-lg font-black">{totalPredictions}</p>
-              </div>
+            <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">
+              {t.leaderboard.prizePlaces}
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+              {placeSummaries.map((place) => {
+                const meta = placeMeta(place.rank)
+                const Icon = meta.Icon ?? Trophy
+
+                return (
+                  <div
+                    key={place.rank}
+                    className={`relative overflow-hidden rounded-2xl border px-4 py-3 shadow-sm backdrop-blur-md ${meta.heroRowClass}`}
+                  >
+                    <span className={`absolute inset-y-3 left-0 w-0.5 rounded-full ${meta.heroAccentClass}`} />
+                    <div className="flex items-start gap-3">
+                      <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/5 ring-1 ${meta.heroIconClass}`}>
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-white/55">
+                          {place.label}
+                        </p>
+                        <p className="mt-1 line-clamp-2 break-words text-sm font-black text-white">
+                          {place.value}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {stats.map((s) => (
           <Card key={s.label} className="rounded-2xl border-slate-200 bg-white shadow-sm">
             <CardContent className="flex items-center gap-4 p-5">
@@ -325,7 +393,7 @@ export function LeaderboardView({
               </span>
               <div className="min-w-0">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{s.label}</p>
-                <p className={`mt-1 text-lg font-black text-slate-950 ${s.wrapValue ? "line-clamp-2 break-words" : "truncate"}`}>{s.value}</p>
+                <p className="mt-1 truncate text-lg font-black text-slate-950">{s.value}</p>
               </div>
             </CardContent>
           </Card>
@@ -438,20 +506,17 @@ export function LeaderboardView({
                       <Fragment key={row.id}>
                         <TableRow className="border-slate-100">
                           <TableCell className="px-3 py-3 font-medium sm:px-4">
-                            {hasRealLeader && row.displayRank === 1 ? (
-                              <span className="inline-flex h-8 min-w-8 items-center justify-center gap-1 rounded-full bg-amber-100 px-2 text-xs font-black text-amber-800 ring-1 ring-amber-200">
-                                <Crown className="h-3.5 w-3.5" />
-                                {row.displayRank}
-                              </span>
-                            ) : hasRealLeader && row.displayRank <= 3 ? (
-                              <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-slate-100 px-2 text-xs font-black text-slate-700 ring-1 ring-slate-200">
-                                {row.displayRank}
-                              </span>
-                            ) : (
-                              <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-slate-100 px-2 text-xs font-black text-slate-600 ring-1 ring-slate-200">
-                                {row.displayRank}
-                              </span>
-                            )}
+                            {(() => {
+                              const meta = hasRealLeader ? placeMeta(row.displayRank) : placeMeta(0)
+                              const Icon = meta.Icon
+
+                              return (
+                                <span className={`inline-flex h-8 min-w-8 items-center justify-center gap-1 rounded-full px-2 text-xs font-black ring-1 ${meta.badgeClass}`}>
+                                  {Icon && <Icon className={`h-3.5 w-3.5 ${meta.iconClass}`} />}
+                                  {row.displayRank}
+                                </span>
+                              )
+                            })()}
                           </TableCell>
                           <TableCell className="px-3 py-3 font-bold text-slate-950 sm:px-4">
                             <div className="flex items-center gap-3">
