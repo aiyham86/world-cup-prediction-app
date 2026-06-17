@@ -1,6 +1,6 @@
 "use server"
 
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { hasMatchStarted } from "@/lib/match-status"
 import { scorePrediction } from "@/lib/scoring"
@@ -151,6 +151,20 @@ export async function submitPrediction(input: {
   }
 
   // Insert new prediction
+  const headersList = await headers()
+
+  const forwardedFor = headersList.get("x-forwarded-for")
+  const realIp = headersList.get("x-real-ip")
+
+  const submittedIp =
+    forwardedFor?.split(",")[0]?.trim() ||
+    realIp ||
+    null
+
+  const submittedUserAgent =
+    headersList.get("user-agent") ||
+    null
+
   const { error: insertError } = await supabase.from("predictions").insert({
     employee_id: employeeId,
     match_id: input.matchId,
@@ -160,6 +174,8 @@ export async function submitPrediction(input: {
     points: 0,
     is_exact_score: false,
     is_correct_outcome: false,
+    submitted_ip: submittedIp,
+    submitted_user_agent: submittedUserAgent,
     updated_at: new Date().toISOString(),
   })
 
