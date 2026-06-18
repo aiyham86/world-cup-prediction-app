@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { Fragment, useMemo, useState } from "react"
-import { Trophy, Users, ListChecks, Building2, Crown, Medal, Minus, Plus } from "lucide-react"
+import { ChevronDown, Trophy, Users, ListChecks, Building2, Crown, Medal, Minus, Plus } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -59,6 +59,16 @@ type PlaceSummary = {
   rank: 1 | 2 | 3
   label: string
   value: string
+}
+
+type PredictionSectionKey = "exactScores" | "correctOutcomes" | "noPoints" | "pending"
+
+type PredictionSection = {
+  key: PredictionSectionKey
+  title: string
+  predictions: LeaderboardPrediction[]
+  headerClass: string
+  bodyClass: string
 }
 
 const TEAM_FLAG_CODES: Record<string, string> = {
@@ -166,6 +176,60 @@ function pointsExplanationKey(prediction: LeaderboardPrediction) {
   return "noPoints"
 }
 
+function buildPredictionSections(
+  predictions: LeaderboardPrediction[],
+  titles: Record<PredictionSectionKey, string>
+): PredictionSection[] {
+  const byMatchNumberDesc = (a: LeaderboardPrediction, b: LeaderboardPrediction) =>
+    b.matchNumber - a.matchNumber
+  const byMatchNumberAsc = (a: LeaderboardPrediction, b: LeaderboardPrediction) =>
+    a.matchNumber - b.matchNumber
+
+  const exactScores = predictions
+    .filter((prediction) => prediction.isExactScore)
+    .sort(byMatchNumberDesc)
+  const correctOutcomes = predictions
+    .filter((prediction) => prediction.isCorrectOutcome && !prediction.isExactScore)
+    .sort(byMatchNumberDesc)
+  const noPoints = predictions
+    .filter((prediction) => prediction.matchStatus === "finished" && prediction.points === 0)
+    .sort(byMatchNumberDesc)
+  const pending = predictions
+    .filter((prediction) => prediction.matchStatus !== "finished")
+    .sort(byMatchNumberAsc)
+
+  return [
+    {
+      key: "exactScores",
+      title: titles.exactScores,
+      predictions: exactScores,
+      headerClass: "border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100",
+      bodyClass: "border-amber-100 bg-amber-50/35",
+    },
+    {
+      key: "correctOutcomes",
+      title: titles.correctOutcomes,
+      predictions: correctOutcomes,
+      headerClass: "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100",
+      bodyClass: "border-emerald-100 bg-emerald-50/35",
+    },
+    {
+      key: "noPoints",
+      title: titles.noPoints,
+      predictions: noPoints,
+      headerClass: "border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100",
+      bodyClass: "border-rose-100 bg-rose-50/30",
+    },
+    {
+      key: "pending",
+      title: titles.pending,
+      predictions: pending,
+      headerClass: "border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200",
+      bodyClass: "border-slate-200 bg-slate-100/60",
+    },
+  ]
+}
+
 function placeMeta(rank: number) {
   if (rank === 1) {
     return {
@@ -223,6 +287,9 @@ export function LeaderboardView({
 }) {
   const { lang, t } = useLanguage()
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null)
+  const [openPredictionSections, setOpenPredictionSections] = useState<
+    Record<string, Partial<Record<PredictionSectionKey, boolean>>>
+  >({})
   const [departmentFilter, setDepartmentFilter] = useState("all")
   const [sort, setSort] = useState<SortState>(null)
 
@@ -298,6 +365,16 @@ export function LeaderboardView({
   const resetOfficialRanking = () => {
     setDepartmentFilter("all")
     setSort(null)
+  }
+
+  const togglePredictionSection = (rowId: string, sectionKey: PredictionSectionKey) => {
+    setOpenPredictionSections((current) => ({
+      ...current,
+      [rowId]: {
+        ...current[rowId],
+        [sectionKey]: !current[rowId]?.[sectionKey],
+      },
+    }))
   }
 
   const sortIndicator = (column: SortColumn) => {
@@ -501,6 +578,12 @@ export function LeaderboardView({
                 ) : (
                   visibleRows.map((row) => {
                     const expanded = expandedRowId === row.id
+                    const predictionSections = buildPredictionSections(row.predictionsList, {
+                      exactScores: t.leaderboard.predictionSections.exactScores,
+                      correctOutcomes: t.leaderboard.predictionSections.correctOutcomes,
+                      noPoints: t.leaderboard.predictionSections.noPoints,
+                      pending: t.leaderboard.predictionSections.pending,
+                    })
 
                     return (
                       <Fragment key={row.id}>
@@ -552,95 +635,124 @@ export function LeaderboardView({
 
                         {expanded && (
                           <TableRow className="border-slate-100 bg-slate-50/80">
-                            <TableCell colSpan={7} className="px-3 py-5 sm:px-4">
-                              <div className="grid gap-3">
-                                {row.predictionsList.map((prediction) => {
-                                  const homeTeam = lang === "de" ? prediction.homeTeamDe : prediction.homeTeamEn
-                                  const awayTeam = lang === "de" ? prediction.awayTeamDe : prediction.awayTeamEn
-                                  const finished =
-                                    prediction.matchStatus === "finished" &&
-                                    prediction.actualHomeScore !== null &&
-                                    prediction.actualAwayScore !== null
-                                  const predictedPenaltyWinner =
-                                    prediction.predictedPenaltyWinner === prediction.homeTeamEn
-                                      ? homeTeam
-                                      : prediction.predictedPenaltyWinner === prediction.awayTeamEn
-                                        ? awayTeam
-                                        : null
-                                  const actualPenaltyWinner =
-                                    prediction.actualPenaltyWinner === prediction.homeTeamEn
-                                      ? homeTeam
-                                      : prediction.actualPenaltyWinner === prediction.awayTeamEn
-                                        ? awayTeam
-                                        : null
-                                  const explanationKey = pointsExplanationKey(prediction)
-                                  const explanation =
-                                    explanationKey === "pending"
-                                      ? t.common.pending
-                                      : t.leaderboard[explanationKey]
+                            <TableCell colSpan={7} className="px-3 py-3 sm:px-4">
+                              <div className="grid gap-2">
+                                {predictionSections.map((section) => {
+                                  const sectionOpen = openPredictionSections[row.id]?.[section.key] ?? false
 
                                   return (
                                     <div
-                                      key={prediction.id}
-                                      className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
+                                      key={section.key}
+                                      className={`overflow-hidden rounded-xl border ${sectionOpen ? section.bodyClass : "border-transparent bg-transparent"}`}
                                     >
-                                      <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm font-bold text-slate-950">
-                                        <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">
-                                          #{prediction.matchNumber}
+                                      <button
+                                        type="button"
+                                        onClick={() => togglePredictionSection(row.id, section.key)}
+                                        className={`flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left text-xs font-black uppercase tracking-[0.12em] transition sm:text-sm ${section.headerClass}`}
+                                        aria-expanded={sectionOpen}
+                                      >
+                                        <span className="min-w-0 truncate">
+                                          {section.title} ({section.predictions.length})
                                         </span>
-                                        <TeamFlag teamName={prediction.homeTeamEn} />
-                                        <span className="truncate">{homeTeam}</span>
-                                        <span className="rounded-full bg-slate-100 px-3 py-1 font-black text-slate-700">
-                                          {prediction.predictedHomeScore}:{prediction.predictedAwayScore}
-                                        </span>
-                                        <span className="truncate">{awayTeam}</span>
-                                        <TeamFlag teamName={prediction.awayTeamEn} />
-                                      </div>
+                                        <ChevronDown
+                                          className={`h-4 w-4 shrink-0 transition-transform ${sectionOpen ? "rotate-180" : ""}`}
+                                        />
+                                      </button>
 
-                                      <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-                                        {predictedPenaltyWinner && (
-                                          <div className="text-sm text-slate-500 lg:text-right">
-                                            <span className="font-bold text-slate-700">
-                                              {t.leaderboard.predictedPenaltyWinner}:{" "}
-                                            </span>
-                                            {predictedPenaltyWinner}
-                                          </div>
-                                        )}
-                                        {predictedPenaltyWinner && (
-                                          <div className="text-sm text-slate-500 lg:text-right">
-                                            <span className="font-bold text-slate-700">
-                                              {t.leaderboard.actualPenaltyWinner}:{" "}
-                                            </span>
-                                            {finished && actualPenaltyWinner ? actualPenaltyWinner : t.common.pending}
-                                          </div>
-                                        )}
-                                        <div className="text-sm text-slate-500 lg:text-right">
-                                          <span className="font-bold text-slate-700">{t.leaderboard.actual}: </span>
-                                          {finished
-                                            ? `${prediction.actualHomeScore} : ${prediction.actualAwayScore}`
-                                            : t.common.pending}
+                                      {sectionOpen && (
+                                        <div className="grid gap-2 p-2 sm:p-3">
+                                          {section.predictions.map((prediction) => {
+                                            const homeTeam = lang === "de" ? prediction.homeTeamDe : prediction.homeTeamEn
+                                            const awayTeam = lang === "de" ? prediction.awayTeamDe : prediction.awayTeamEn
+                                            const finished =
+                                              prediction.matchStatus === "finished" &&
+                                              prediction.actualHomeScore !== null &&
+                                              prediction.actualAwayScore !== null
+                                            const predictedPenaltyWinner =
+                                              prediction.predictedPenaltyWinner === prediction.homeTeamEn
+                                                ? homeTeam
+                                                : prediction.predictedPenaltyWinner === prediction.awayTeamEn
+                                                  ? awayTeam
+                                                  : null
+                                            const actualPenaltyWinner =
+                                              prediction.actualPenaltyWinner === prediction.homeTeamEn
+                                                ? homeTeam
+                                                : prediction.actualPenaltyWinner === prediction.awayTeamEn
+                                                  ? awayTeam
+                                                  : null
+                                            const explanationKey = pointsExplanationKey(prediction)
+                                            const explanation =
+                                              explanationKey === "pending"
+                                                ? t.common.pending
+                                                : t.leaderboard[explanationKey]
+
+                                            return (
+                                              <div
+                                                key={prediction.id}
+                                                className="grid gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
+                                              >
+                                                <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm font-bold text-slate-950">
+                                                  <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">
+                                                    #{prediction.matchNumber}
+                                                  </span>
+                                                  <TeamFlag teamName={prediction.homeTeamEn} />
+                                                  <span className="truncate">{homeTeam}</span>
+                                                  <span className="rounded-full bg-slate-100 px-3 py-1 font-black text-slate-700">
+                                                    {prediction.predictedHomeScore}:{prediction.predictedAwayScore}
+                                                  </span>
+                                                  <span className="truncate">{awayTeam}</span>
+                                                  <TeamFlag teamName={prediction.awayTeamEn} />
+                                                </div>
+
+                                                <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                                                  {predictedPenaltyWinner && (
+                                                    <div className="text-sm text-slate-500 lg:text-right">
+                                                      <span className="font-bold text-slate-700">
+                                                        {t.leaderboard.predictedPenaltyWinner}:{" "}
+                                                      </span>
+                                                      {predictedPenaltyWinner}
+                                                    </div>
+                                                  )}
+                                                  {predictedPenaltyWinner && (
+                                                    <div className="text-sm text-slate-500 lg:text-right">
+                                                      <span className="font-bold text-slate-700">
+                                                        {t.leaderboard.actualPenaltyWinner}:{" "}
+                                                      </span>
+                                                      {finished && actualPenaltyWinner ? actualPenaltyWinner : t.common.pending}
+                                                    </div>
+                                                  )}
+                                                  <div className="text-sm text-slate-500 lg:text-right">
+                                                    <span className="font-bold text-slate-700">{t.leaderboard.actual}: </span>
+                                                    {finished
+                                                      ? `${prediction.actualHomeScore} : ${prediction.actualAwayScore}`
+                                                      : t.common.pending}
+                                                  </div>
+
+                                                  <div className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-black text-emerald-600 ring-1 ring-emerald-100">
+                                                    {prediction.points} {t.common.pointsShort}
+                                                  </div>
+
+                                                  <Badge
+                                                    variant="secondary"
+                                                    className={
+                                                      explanationKey === "exactScore" ||
+                                                      explanationKey === "exactScorePenaltyWinner" ||
+                                                      explanationKey === "exactScorePenaltyWinnerWrong"
+                                                        ? "bg-amber-50 text-amber-800 hover:bg-amber-50"
+                                                        : explanationKey === "correctOutcome" ||
+                                                            explanationKey === "correctDrawPenaltyWinner"
+                                                          ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
+                                                          : "bg-slate-100 text-slate-600 hover:bg-slate-100"
+                                                    }
+                                                  >
+                                                    {explanation}
+                                                  </Badge>
+                                                </div>
+                                              </div>
+                                            )
+                                          })}
                                         </div>
-
-                                        <div className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-black text-emerald-600 ring-1 ring-emerald-100">
-                                          {prediction.points} {t.common.pointsShort}
-                                        </div>
-
-                                        <Badge
-                                          variant="secondary"
-                                          className={
-                                            explanationKey === "exactScore" ||
-                                            explanationKey === "exactScorePenaltyWinner" ||
-                                            explanationKey === "exactScorePenaltyWinnerWrong"
-                                              ? "bg-amber-50 text-amber-800 hover:bg-amber-50"
-                                              : explanationKey === "correctOutcome" ||
-                                                  explanationKey === "correctDrawPenaltyWinner"
-                                                ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
-                                                : "bg-slate-100 text-slate-600 hover:bg-slate-100"
-                                          }
-                                        >
-                                          {explanation}
-                                        </Badge>
-                                      </div>
+                                      )}
                                     </div>
                                   )
                                 })}
