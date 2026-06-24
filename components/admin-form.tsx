@@ -2,12 +2,12 @@
 
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { CalendarDays, CircleDot, Info, LogOut, ShieldCheck, Trophy } from "lucide-react"
 import { toast } from "sonner"
 import { useLanguage } from "@/components/language-provider"
 import { formatMatchDate, teamNames } from "@/lib/i18n"
-import { getDisplayMatchStatus, type DisplayMatchStatus } from "@/lib/match-status"
+import { getDisplayMatchStatus, getKickoffDate, type DisplayMatchStatus } from "@/lib/match-status"
 import type { Match } from "@/lib/types"
 import { adminLogout, saveMatchResult } from "@/app/actions"
 import { Button } from "@/components/ui/button"
@@ -110,6 +110,30 @@ function matchOptionLabel(match: Match, lang: "en" | "de", vs: string) {
   return `#${match.match_number} ${home} ${vs} ${away} - ${formatMatchDate(match.match_date, lang)}${time}`
 }
 
+function sortAdminMatches(matches: Match[], now: Date) {
+  const statusRank: Record<DisplayMatchStatus, number> = {
+    awaiting_result: 0,
+    live: 1,
+    upcoming: 2,
+    finished: 3,
+  }
+
+  return [...matches].sort((a, b) => {
+    const aStatus = getDisplayMatchStatus(a, now)
+    const bStatus = getDisplayMatchStatus(b, now)
+    const statusDiff = statusRank[aStatus] - statusRank[bStatus]
+
+    if (statusDiff !== 0) return statusDiff
+    if (aStatus === "finished") return b.match_number - a.match_number
+
+    const aKickoff = getKickoffDate(a)?.getTime() ?? Number.MAX_SAFE_INTEGER
+    const bKickoff = getKickoffDate(b)?.getTime() ?? Number.MAX_SAFE_INTEGER
+    const kickoffDiff = aKickoff - bKickoff
+
+    return kickoffDiff !== 0 ? kickoffDiff : a.match_number - b.match_number
+  })
+}
+
 export function AdminForm({ matches }: { matches: Match[] }) {
   const { lang, t } = useLanguage()
   const router = useRouter()
@@ -123,6 +147,7 @@ export function AdminForm({ matches }: { matches: Match[] }) {
   const [now, setNow] = useState(() => new Date())
 
   const selectedMatch = matches.find((m) => m.id === matchId)
+  const sortedMatches = useMemo(() => sortAdminMatches(matches, now), [matches, now])
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 60_000)
@@ -343,7 +368,7 @@ export function AdminForm({ matches }: { matches: Match[] }) {
                     </span>
                   </SelectTrigger>
                   <SelectContent sideOffset={6} className="z-[9999] max-h-80 overflow-y-auto">
-                    {matches.map((m) => (
+                    {sortedMatches.map((m) => (
                       <SelectItem key={m.id} value={m.id}>
                         {matchOptionLabel(m, lang, t.common.vs)}
                       </SelectItem>
