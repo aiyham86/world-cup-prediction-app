@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import { BarChart3, ClipboardList, FileText, Home, Menu, Shield, Trophy, X } from "lucide-react"
+import { FileText, Home, Menu, Trophy, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/language-provider"
 import { Button } from "@/components/ui/button"
@@ -15,10 +15,7 @@ export function SiteHeader() {
 
   const links = [
     { href: "/", label: t.nav.home, icon: Home },
-    { href: "/submit", label: t.nav.submit, icon: ClipboardList },
-    { href: "/leaderboard", label: t.nav.leaderboard, icon: Trophy },
-    { href: "/results", label: t.nav.results, icon: BarChart3 },
-    { href: "/rules", label: t.nav.rules, icon: Shield },
+    { href: "/archive/2026", label: t.retired.navArchive, icon: Trophy },
     { href: "/privacy", label: t.nav.privacy, icon: FileText },
   ]
 
@@ -31,8 +28,9 @@ export function SiteHeader() {
           </span>
 
           <span className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate text-sm font-bold tracking-wide sm:text-base">{t.appName}</span>
-            <span className="hidden text-xs text-white/55 md:block">{t.home.subtitle}</span>
+            <span className="truncate text-sm font-bold tracking-wide sm:hidden">SIMEX</span>
+            <span className="hidden truncate text-sm font-bold tracking-wide sm:block sm:text-base">{t.appName}</span>
+            <span className="hidden text-xs text-white/55 md:block">{t.retired.headerSubtitle}</span>
           </span>
         </Link>
 

@@ -19,6 +19,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     const stored = typeof window !== "undefined" ? (localStorage.getItem("simex-lang") as Lang | null) : null
     if (stored === "en" || stored === "de") {
       setLangState(stored)
+      document.documentElement.lang = stored
     }
   }, [])
 

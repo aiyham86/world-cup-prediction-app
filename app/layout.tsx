@@ -13,9 +13,12 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Simex World Cup 2026 Tippspiel',
+  title: {
+    default: 'Simex World Cup Prediction Game — 2030',
+    template: '%s | Simex World Cup Prediction Game',
+  },
   description:
-    'Internal Simex prediction game for the World Cup 2026. Predict match scores, collect points, and climb the leaderboard.',
+    'The Simex World Cup Prediction Game will return for the FIFA World Cup 2030. View the final results from 2026.',
 }
 
 export default function RootLayout({

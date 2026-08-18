@@ -1,6 +1,11 @@
 "use server"
 
 import { cookies, headers } from "next/headers"
+import {
+  ADMIN_FUNCTIONALITY_ENABLED,
+  PUBLIC_COMMUNITY_WRITES_ENABLED,
+  PUBLIC_PREDICTIONS_ENABLED,
+} from "@/lib/game-status"
 import { createClient } from "@/lib/supabase/server"
 import { hasMatchStarted } from "@/lib/match-status"
 import { scorePrediction } from "@/lib/scoring"
@@ -17,6 +22,7 @@ const messages = {
     locked: "Predictions for this match are already locked.",
     matchStarted: "Match already started.",
     penaltyWinnerRequired: "Please choose who advances after penalties.",
+    retired: "The 2026 prediction game is closed.",
     generic: "Something went wrong. Please try again.",
   },
   de: {
@@ -24,6 +30,7 @@ const messages = {
     locked: "Tipps für dieses Spiel sind bereits gesperrt.",
     matchStarted: "Spiel hat bereits begonnen.",
     penaltyWinnerRequired: "Bitte wähle aus, wer im Elfmeterschießen weiterkommt.",
+    retired: "Das Tippspiel 2026 ist geschlossen.",
     generic: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
   },
 }
@@ -36,6 +43,10 @@ async function isAdminAuthenticated() {
 }
 
 export async function adminLogin(password: string): Promise<SubmitResult> {
+  if (!ADMIN_FUNCTIONALITY_ENABLED) {
+    return { ok: false, error: "The 2026 admin is retired." }
+  }
+
   if (!process.env.ADMIN_PASSWORD || password !== process.env.ADMIN_PASSWORD) {
     return { ok: false, error: "Invalid password" }
   }
@@ -74,6 +85,10 @@ export async function submitPrediction(input: {
   predictedPenaltyWinner?: string | null
   lang: Lang
 }): Promise<SubmitResult> {
+  if (!PUBLIC_PREDICTIONS_ENABLED) {
+    return { ok: false, error: messages[input.lang].retired }
+  }
+
   const m = messages[input.lang]
   const supabase = await createClient()
 
@@ -227,6 +242,10 @@ export async function saveMatchReaction(input: {
   participantName: string
   reactionType: ReactionType
 }): Promise<ReactionResult> {
+  if (!PUBLIC_COMMUNITY_WRITES_ENABLED) {
+    return { ok: false, error: "The 2026 prediction game is closed." }
+  }
+
   const participantName = input.participantName.trim()
 
   if (!participantName || !reactionTypes.has(input.reactionType)) {
@@ -258,6 +277,10 @@ export async function postMatchComment(input: {
   comment: string
   parentCommentId?: string | null
 }): Promise<CommentResult> {
+  if (!PUBLIC_COMMUNITY_WRITES_ENABLED) {
+    return { ok: false, error: "The 2026 prediction game is closed." }
+  }
+
   const participantName = input.participantName.trim()
   const comment = input.comment.trim()
   const parentCommentId = input.parentCommentId ?? null
@@ -305,6 +328,10 @@ export async function saveMatchResult(input: {
   status: "upcoming" | "live" | "finished"
   penaltyWinner?: string | null
 }): Promise<SubmitResult> {
+  if (!ADMIN_FUNCTIONALITY_ENABLED) {
+    return { ok: false, error: "The 2026 admin is retired." }
+  }
+
   if (!(await isAdminAuthenticated())) {
     return { ok: false, error: "unauthorized" }
   }
